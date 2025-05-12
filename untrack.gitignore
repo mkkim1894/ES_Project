@@ -1,0 +1,6 @@
+# Prevent large data files from being tracked
+*.mat
+Main/
+Working Directory/
+Supplementary/
+PleiotropicFGM/
