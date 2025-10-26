@@ -1,5 +1,4 @@
-# ES_Project
-**Module-Selection Balance in the Evolution of Modular Organisms**  
+# Module-Selection Balance in the Evolution of Modular Organisms
 Minkyu Kim, Sarah M. Ardell, Sergey Kryazhimskiy (2025)
 
 ---
