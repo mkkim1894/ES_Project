@@ -40,13 +40,16 @@ function [resultModularSSWM] = simulateModularSSWM( simParams )
 
                 %% Mutation
                 traitDisplacement = zeros(2, 1);
-                p = fractionBeneficial1 / (fractionBeneficial1 + fractionBeneficial2); 
-                
-                if mybinornd(1, p) == 0
-                    traitDisplacement(2, 1) = deltaTrait;
-                else
-                    traitDisplacement(1, 1) = deltaTrait;
-                end
+
+                % Decide which trait mutates
+                p_trait = fractionBeneficial1 / (fractionBeneficial1 + fractionBeneficial2);
+                mutDim = mybinornd(1, p_trait) + 1;   % 1 → trait1, 2 → trait2
+
+                % Randomly choose sign (+ or −) for the mutation step
+                direction = 2 * (rand < 0.5) - 1;     % +1 or -1
+
+                % Apply the mutation step
+                traitDisplacement(mutDim) = deltaTrait * direction;
                 
                 newPhenotype = EvolutionLog.MetaInfo(changeTime, 1:2) + traitDisplacement';
                 newFitness = -( (newPhenotype(1)/ellipseParamsSlice(1))^2 + (newPhenotype(2)/ellipseParamsSlice(2))^2 );            

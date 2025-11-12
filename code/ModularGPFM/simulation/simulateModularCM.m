@@ -54,30 +54,36 @@ function [resultModularCM] = simulateModularCM( simParams )
             t = 1;
             while ~simulationEnd
                 %% Mutation        
-                numMutantTrait1 = poissrnd( sum(populationMatrix(1:end, 4)) ); 
+                numMutantTrait1 = poissrnd(sum(populationMatrix(:,4)));
                 if numMutantTrait1 > 0
-                    mutID_trait1 = datasample(1:popSize, numMutantTrait1, 'Weights', populationMatrix(1:end, 4), 'Replace', false);
-                    mutMatrix1 = populationMatrix(mutID_trait1, 1:end);
-                    mutMatrix1(1:end, 1) = mutMatrix1(1:end, 1) + deltaTrait;
-                    
-                    newFitness1 = -( (mutMatrix1(1:end, 1)./ellipseParamsSlice(1)).^2 + (mutMatrix1(1:end, 2)./ellipseParamsSlice(2)).^2 );
-                    mutMatrix1(1:end, 3) = exp( newFitness1./(2*landscapeStdDev^2) ); 
-                    mutMatrix1(1:end, 4) = mutationRate * abs( mutMatrix1(1:end, 1) ) .* ( 1/(deltaTrait*geneticTargetSizeSlice(1)) );
+                    mutID_trait1 = datasample(1:popSize, numMutantTrait1, 'Weights', populationMatrix(:,4), 'Replace', false);
+                    mutMatrix1 = populationMatrix(mutID_trait1,:);
+    
+                    % Random ±δ direction for each mutant
+                    directions = 2 * (rand(numMutantTrait1,1) < 0.5) - 1;
+                    mutMatrix1(:,1) = mutMatrix1(:,1) + deltaTrait .* directions;
 
-                    populationMatrix(mutID_trait1, 1:end) = mutMatrix1;
+                    newFitness1 = -( (mutMatrix1(:,1)./ellipseParamsSlice(1)).^2 + (mutMatrix1(:,2)./ellipseParamsSlice(2)).^2 );
+                    mutMatrix1(:,3) = exp(newFitness1./(2*landscapeStdDev^2)); 
+                    mutMatrix1(:,4) = mutationRate .* abs(mutMatrix1(:,1)) .* (1/(deltaTrait*geneticTargetSizeSlice(1)));
+
+                    populationMatrix(mutID_trait1,:) = mutMatrix1;
                 end
-                
-                numMutantTrait2 = poissrnd( sum(populationMatrix(1:end, 5)) );
-                if numMutantTrait2 > 0
-                    mutID_trait2 = datasample(1:popSize, numMutantTrait2, 'Weights', populationMatrix(1:end, 5), 'Replace', false);
-                    mutMatrix2 = populationMatrix(mutID_trait2, 1:end);
-                    mutMatrix2(1:end, 2) = mutMatrix2(1:end, 2) + deltaTrait;
-                    
-                    newFitness2 = -( (mutMatrix2(1:end, 1)./ellipseParamsSlice(1)).^2 + (mutMatrix2(1:end, 2)./ellipseParamsSlice(2)).^2 );
-                    mutMatrix2(1:end, 3) = exp( newFitness2./(2*landscapeStdDev^2) ); 
-                    mutMatrix2(1:end, 5) = mutationRate * abs( mutMatrix2(1:end, 2) ) .* ( 1/(deltaTrait*geneticTargetSizeSlice(2)) );
 
-                    populationMatrix(mutID_trait2, 1:end) = mutMatrix2;
+                numMutantTrait2 = poissrnd(sum(populationMatrix(:,5)));
+                if numMutantTrait2 > 0
+                    mutID_trait2 = datasample(1:popSize, numMutantTrait2, 'Weights', populationMatrix(:,5), 'Replace', false);
+                    mutMatrix2 = populationMatrix(mutID_trait2,:);
+
+                    % Random ±δ direction for each mutant
+                    directions = 2 * (rand(numMutantTrait2,1) < 0.5) - 1;
+                    mutMatrix2(:,2) = mutMatrix2(:,2) + deltaTrait .* directions;
+
+                    newFitness2 = -( (mutMatrix2(:,1)./ellipseParamsSlice(1)).^2 + (mutMatrix2(:,2)./ellipseParamsSlice(2)).^2 );
+                    mutMatrix2(:,3) = exp(newFitness2./(2*landscapeStdDev^2)); 
+                    mutMatrix2(:,5) = mutationRate .* abs(mutMatrix2(:,2)) .* (1/(deltaTrait*geneticTargetSizeSlice(2)));
+
+                    populationMatrix(mutID_trait2,:) = mutMatrix2;
                 end
                 
                 %% Recombination

@@ -158,22 +158,14 @@ function [resultPleiotropicCM] = simulatePleiotropicCM(simParams, genomeParams)
                 %% Selection Phase
                 % Normalize fitness to get selection probabilities
                 selectionProbabilities = currentFitness / sum(currentFitness);
-
-                % Number of offspring each individual produces
                 numOffsprings = mnrnd(popSize, selectionProbabilities);
 
-                % Reproduce individuals according to their number of offspring
-                newGenomeMatrix = zeros(popSize, numLoci);
-                idx = 1;
-                for i = 1:popSize
-                    offspringCount = numOffsprings(i);
-                    if offspringCount > 0
-                        endIdx = idx + offspringCount - 1;
-                        newGenomeMatrix(idx:endIdx, :) = repmat(genomeMatrix(i, :), offspringCount, 1);
-                        idx = endIdx + 1;
-                    end
-                end
-                
+                % Build parent index list once
+                parentIndices = repelem(1:popSize, numOffsprings);
+
+                % Create next generation genomes directly
+                newGenomeMatrix = genomeMatrix(parentIndices, :);
+
                 % Update genomeMatrix for the next generation
                 genomeMatrix = newGenomeMatrix(1:popSize, :);
 
