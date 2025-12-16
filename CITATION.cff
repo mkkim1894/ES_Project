@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Module-Selection Balance in the Evolution of Modular Organisms"
+type: software
+authors:
+  - family-names: Kim
+    given-names: Minkyu
+    email: mk2687@cornell.edu
+    affiliation: Cornell University
+  - family-names: Ardell
+    given-names: Sarah M.
+    affiliation: University of California, San Diego
+  - family-names: Kryazhimskiy
+    given-names: Sergey
+    affiliation: University of California, San Diego
+version: 1.0.0
+date-released: 2025-01-01
+license: MIT
+repository-code: https://github.com/mkkim1894/ModularFGM
+keywords:
+  - Fisher's Geometric Model
+  - evolutionary biology
+  - modularity
+  - adaptation
+  - population genetics
+preferred-citation:
+  type: article
+  authors:
+    - family-names: Kim
+      given-names: Minkyu
+    - family-names: Ardell
+      given-names: Sarah M.
+    - family-names: Kryazhimskiy
+      given-names: Sergey
+  title: "Module-Selection Balance in the Evolution of Modular Organisms"
+  journal: Genetics
+  year: 2025
