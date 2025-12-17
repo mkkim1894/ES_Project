@@ -14,7 +14,7 @@ function Run_ThresholdDAnalysis(varargin)
 %
 % Outputs:
 %   Saves .mat file containing:
-%       analyticalTrajectories - Cell array of trajectories for each D value
+%       Theory_D_check        - Cell array of trajectories for each D value
 %       D_values              - Threshold values used
 %       summary               - Parameter structure
 %
@@ -70,7 +70,7 @@ summary.U = 10^-3;                          % Mutation rate
 fprintf('Computing analytical trajectories for %d threshold values...\n', length(D_values));
 tic;
 
-analyticalTrajectories = cell(length(summary.InitialAngle), length(D_values));
+Theory_D_check = cell(length(summary.InitialAngle), length(D_values));
 
 for i_d = 1:length(D_values)
     summary.D = D_values(i_d);
@@ -80,7 +80,7 @@ for i_d = 1:length(D_values)
     
     % Store trajectories for this D value
     for i_pos = 1:length(summary.InitialAngle)
-        analyticalTrajectories{i_pos, i_d} = Theory{i_pos, 1};
+        Theory_D_check{i_pos, i_d} = Theory{i_pos, 1};
     end
 end
 
@@ -89,7 +89,7 @@ fprintf('Completed in %.2f seconds\n', elapsed);
 
 %% Save results
 outputPath = fullfile(outputDir, outputFile);
-save(outputPath, 'analyticalTrajectories', 'D_values', 'summary');
+save(outputPath, 'Theory_D_check', 'D_values', 'summary');
 fprintf('Results saved to %s\n', outputPath);
 
 %% Display summary

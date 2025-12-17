@@ -77,17 +77,12 @@ function Run_supplementary(mode)
         sectionTimer('S1 start');
         
         try
-            [WFsim, WFsim_vi, Parameter, Prediction, Prediction_U, Prediction_s] = ...
-                simulateSteadyStateCM(cfg.N, ...
-                    'generations', cfg.generations, ...
-                    't_burnin', cfg.t_burnin, ...
-                    'savePath', resultsDir);
-            
-            % Save with standard naming
-            fname = fullfile(resultsDir, sprintf('SteadyStateCM_N_%d.mat', cfg.N));
-            save(fname, 'WFsim', 'WFsim_vi', 'Parameter', 'Prediction', ...
-                 'Prediction_U', 'Prediction_s');
-            fprintf('Saved: %s\n', fname);
+            % simulateSteadyStateCM saves the file directly with correct variable names
+            % when savePath is provided, so we don't need to save again
+            [~, ~, ~, ~, ~, ~] = simulateSteadyStateCM(cfg.N, ...
+                'generations', cfg.generations, ...
+                't_burnin', cfg.t_burnin, ...
+                'savePath', resultsDir);
             
         catch ME
             fprintf('Warning: S1 failed - %s\n', ME.message);
@@ -119,21 +114,21 @@ function Run_supplementary(mode)
         try
             % Run three conditions
             fprintf('  Running two-trait model...\n');
-            [~, summary_both] = simulateSteadyStateRecomb('both', ...
+            [~, ~] = simulateSteadyStateRecomb('both', ...
                 'numRepeat', cfg.numRepeat, ...
                 'generations', cfg.generations, ...
                 't_burnin', cfg.t_burnin, ...
                 'savePath', resultsDir);
             
             fprintf('  Running trait 1 only...\n');
-            [~, summary_t1] = simulateSteadyStateRecomb('trait1', ...
+            [~, ~] = simulateSteadyStateRecomb('trait1', ...
                 'numRepeat', cfg.numRepeat, ...
                 'generations', cfg.generations, ...
                 't_burnin', cfg.t_burnin, ...
                 'savePath', resultsDir);
             
             fprintf('  Running trait 2 only...\n');
-            [~, summary_t2] = simulateSteadyStateRecomb('trait2', ...
+            [~, ~] = simulateSteadyStateRecomb('trait2', ...
                 'numRepeat', cfg.numRepeat, ...
                 'generations', cfg.generations, ...
                 't_burnin', cfg.t_burnin, ...
@@ -180,21 +175,40 @@ function Run_supplementary(mode)
         sectionTimer('S3 complete');
     end
     
-    % Generate S3 figures (requires simulation data)
+    % Generate S3 figures (requires simulation data from Run_modularFGM)
     fprintf('\nGenerating S3 figures...\n');
     theoryFile = fullfile(resultsDir, 'ThresholdD_Analysis.mat');
-    simFile = fullfile(resultsDir, 'DynSim_2.mat');  % May need to generate this separately
+    
+    % Look for simulation data in multiple possible locations
+    possibleSimFiles = {
+        fullfile(resultsDir, 'DynSim_2.mat'), ...
+        fullfile(thisDir, '../results/CM_Asexual/DynSim_2.mat'), ...
+        fullfile(thisDir, '../results_demo/CM_Asexual/DynSim_2.mat')
+    };
+    
+    simFile = '';
+    for i = 1:length(possibleSimFiles)
+        if isfile(possibleSimFiles{i})
+            simFile = possibleSimFiles{i};
+            break;
+        end
+    end
     
     if isfile(theoryFile)
-        if isfile(simFile)
+        if ~isempty(simFile)
             try
-                makeFigureS_ThresholdDTrajectories(simFile, theoryFile, 'outputDir', figuresDir);
+                makeFigureS_ThresholdDTrajectories(simFile, theoryFile, ...
+                    'D_values', cfg.D_values, 'outputDir', figuresDir);
             catch ME
                 fprintf('Warning: S3 figures failed - %s\n', ME.message);
             end
         else
             fprintf('Skipping S3 trajectory figures - simulation data not found\n');
-            fprintf('  (DynSim_2.mat must be generated separately)\n');
+            fprintf('  To generate S3 figures, first run Run_modularFGM to create DynSim_2.mat\n');
+            fprintf('  Searched locations:\n');
+            for i = 1:length(possibleSimFiles)
+                fprintf('    - %s\n', possibleSimFiles{i});
+            end
         end
     else
         fprintf('Skipping S3 figures - theory data not found\n');
@@ -222,9 +236,9 @@ function Run_supplementary(mode)
     
     % List generated files
     fprintf('Generated data files:\n');
-    dataFiles = dir(fullfile(resultsDir, '*.mat'));
-    for i = 1:length(dataFiles)
-        fprintf('  - %s\n', dataFiles(i).name);
+    dataFilesList = dir(fullfile(resultsDir, '*.mat'));
+    for i = 1:length(dataFilesList)
+        fprintf('  - %s\n', dataFilesList(i).name);
     end
     
     fprintf('\nGenerated figures:\n');
