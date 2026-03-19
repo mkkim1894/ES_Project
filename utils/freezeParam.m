@@ -1,15 +1,18 @@
 function initialParameters = freezeParam(simParams)
-% freezeParam - Precompute mutation rates and selection coefficients.
+% freezeParam - Precompute mutation rates and selection coefficients for pre-run equilibration.
 %
 % Description:
-%   Calculates the mutation supply rates (U1, U2) and selection coefficients
-%   (s1, s2) for each initial phenotype, used for pre-run equilibration.
+%   For each initial phenotype, computes the beneficial mutation supply rates
+%   (U1, U2) and selection coefficients (s1, s2) evaluated at the initial
+%   phenotype. These are fixed approximations used throughout the burn-in;
+%   they do not update as phenotypes shift during pre-run.
+%   U_i = U * |x_i| / (2 * delta * K_i), consistent with the binary locus model.
 %
 % Inputs:
 %   simParams - Structure containing simulation parameters
 %
 % Outputs:
-%   initialParameters - Matrix [nAngles x 4] where each row contains [U1, U2, s1, s2]
+%   initialParameters - Matrix [nAngles x 4], each row contains [U1, U2, s1, s2]
 %
 % Reference:
 %   Kim, M., Ardell, S. M., & Kryazhimskiy, S. (2025).
@@ -28,8 +31,8 @@ function initialParameters = freezeParam(simParams)
         WT = simParams.initialPhenotypes(i_pos, :);
         
         % Compute mutation rates
-        U1 = simParams.mutationRate * ( abs(WT(1)) * 1 / (simParams.deltaTrait * simParams.geneticTargetSize(1)) );
-        U2 = simParams.mutationRate * ( abs(WT(2)) * 1 / (simParams.deltaTrait * simParams.geneticTargetSize(2)) );
+        U1 = simParams.mutationRate * abs(WT(1)) / (2 * simParams.deltaTrait * simParams.geneticTargetSize(1));
+        U2 = simParams.mutationRate * abs(WT(2)) / (2 * simParams.deltaTrait * simParams.geneticTargetSize(2));
         
         % Compute fitness differences for mutational effects
         traitDelta1 = WT(1) + simParams.deltaTrait;

@@ -1,9 +1,13 @@
 function populationMatrices = preRunSimulation(initialParameters, simParams, numSteps, varargin)
-% preRunSimulation - Initialize populations at mutation-selection balance.
+% preRunSimulation - Run burn-in to establish standing genetic variation.
 %
 % Description:
-%   Runs a burn-in simulation to establish mutation-selection equilibrium
-%   before the main evolutionary simulation begins.
+%   Simulates numSteps generations of mutation, recombination, and selection
+%   starting from a monomorphic population at each initial phenotype. The
+%   resulting population matrices are used to initialize CM Sexual simulations
+%   with standing genetic variation rather than a monomorphic starting state.
+%   Selection coefficients and mutation rates are held fixed at initial-phenotype
+%   values throughout the burn-in (frozen-parameter approximation).
 %
 % Inputs:
 %   initialParameters - Matrix [nAngles x 4] from freezeParam: [U1, U2, s1, s2]
@@ -14,6 +18,8 @@ function populationMatrices = preRunSimulation(initialParameters, simParams, num
 % Outputs:
 %   populationMatrices - Cell array {nAngles x 1}, each containing [N x 5] matrix:
 %                        [trait1, trait2, fitness, mutRate1, mutRate2]
+%                        Note: columns 4-5 (mutation rates) are not read by
+%                        simulateModularCM, which recomputes rates on the fly.
 %
 % Example:
 %   initParams = freezeParam(simParams);

@@ -1,36 +1,32 @@
-% Function: findInitialPhenotype
+function initialPhenotypes = findInitialPhenotypes(initialAngles, ellipseParams, initialFitness, landscapeStdDev) 
+% findInitialPhenotypes - Find initial phenotype coordinates on a fitness contour.
+%
 % Description:
-%   This function calculates the initial phenotypic coordinates in a 2D 
-%   Fisher's Geometric Model (FGM) given the initial angles, ellipse 
-%   parameters representing selection pressures, initial fitness, and the 
-%   standard deviation of the fitness landscape.
+%   For each initial angle, computes the phenotype coordinates (x1, x2) that
+%   lie on the fitness contour W = initialFitness in the direction of that angle.
+%   Uses the symbolic solver to find the radius along each direction.
 %
 % Inputs:
-%   initialAngles - A vector containing initial angles (in radians) for the 
-%                   phenotypic space, defining the direction of each starting point.
-%   ellipseParams - A 1x2 vector [a1, a2] representing the parameters of 
-%                   the elliptical fitness landscape (axes lengths).
-%   initialFitness - A scalar representing the initial fitness value that the 
-%                    phenotypic coordinates should correspond to.
-%   landscapeStdDev - A scalar representing the standard deviation of the 
-%                     fitness landscape.
+%   initialAngles   - Vector of angles (radians) defining phenotypic directions
+%   ellipseParams   - [a1, a2] ellipse axes of the fitness landscape
+%   initialFitness  - Target fitness value W0 for the initial contour
+%   landscapeStdDev - Fitness landscape width parameter (sigma)
 %
 % Outputs:
-%   initialPhenotypes - An Nx2 matrix where N is the number of initial angles. 
-%                      Each row contains the (x, y) coordinates of the initial 
-%                      phenotype for the corresponding angle.
+%   initialPhenotypes - Matrix [nAngles x 2], each row is (x1, x2) on the W0 contour
 %
-% Example Usage:
-%   initialPhenotypes = findInitialPhenotypes([atan2(1, 6.4), atan2(1, 3.2)], [sqrt(2), 1], 0.25, 2);
+% Example:
+%   initialPhenotypes = findInitialPhenotypes([atan2(1, 6.4), atan2(1, 3.2)], [1, 1/sqrt(2)], 0.25, 2);
 %
 % Reference:
 %   Kim, M., Ardell, S. M., & Kryazhimskiy, S. (2025).
 %   "Module-Selection Balance in the Evolution of Modular Organisms."
 %
+% See also: initializeSimParams
+%
 % Copyright (c) 2025 Minkyu Kim, Cornell University
 % Licensed under MIT License
 
-function initialPhenotypes = findInitialPhenotypes(initialAngles, ellipseParams, initialFitness, landscapeStdDev)    
     % Preallocate matrix for initial phenotype coordinates
     initialPhenotypes = zeros(length(initialAngles), 2);
     

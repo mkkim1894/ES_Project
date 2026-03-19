@@ -1,31 +1,17 @@
 # Module-Selection Balance in the Evolution of Modular Organisms
 
 **Authors:** Minkyu Kim, Sarah M. Ardell, Sergey Kryazhimskiy  
-**Affiliations:** Cornell University; University of California, San Diego
+**Affiliations:** Cornell University; University of California San Diego
 
 ---
 
 ## Overview
 
-This repository contains MATLAB code implementing Fisher's Geometric Model (FGM) variants for studying how organismal modularity affects evolutionary trajectories.
+This repository contains MATLAB code and a Python notebook for the simulations and analyses in:
 
-**Reference:**
-> Kim, M., Ardell, S. M., & Kryazhimskiy, S. (2025). Module-Selection Balance in the Evolution of Modular Organisms. *Genetics* / *PNAS*.
+> Kim, M., Ardell, S. M., & Kryazhimskiy, S. (2025). Module-Selection Balance in the Evolution of Modular Organisms.
 
----
-
-## Models Implemented
-
-| Model | Description |
-|-------|-------------|
-| **Modular FGM** | Mutations affect single modules with varying target sizes |
-| **Pleiotropic FGM** | Mutations affect both traits with random pleiotropic angles |
-| **Nested FGM** | Each module is itself a multi-dimensional FGM |
-| **Standard FGM** | Isotropic mutations (baseline comparison) |
-
-Each model is simulated under:
-- **SSWM** (Strong Selection Weak Mutation) - Sequential fixation regime
-- **CM** (Concurrent Mutations) - Multiple segregating mutations
+Four genotype-phenotype-fitness map (GPFM) models are implemented — Pleiotropic, Modular, Discordant-module, and Nested FGM — each simulated under the Strong Selection Weak Mutation (SSWM) and Concurrent Mutations (CM) regimes. A separate Python notebook reproduces the LTEE metagenomic analysis (Figure 6).
 
 ---
 
@@ -33,44 +19,50 @@ Each model is simulated under:
 
 ```
 project_root/
-├── main/                     # Driver scripts
-│   ├── Run_modularFGM.m      # Modular FGM (Figures 3-6)
-│   ├── Run_pleiotropicFGM.m  # Pleiotropic FGM (Figure 2)
-│   ├── Run_standardFGM.m     # Standard FGM baseline
-│   ├── Run_supplementary.m   # All supplementary analyses
-│   └── Run_ThresholdDAnalysis.m  # Threshold D sensitivity
-├── simulation/               # Core simulation functions
-│   ├── simulateModularSSWM.m
-│   ├── simulateModularCM.m
-│   ├── simulateNestedSSWM.m
-│   ├── simulateNestedCM.m
+├── run_scripts/
+│   ├── Run_pleiotropicFGM.m          # Pleiotropic FGM simulations (Figure 2)
+│   ├── Run_modularFGM.m              # Modular FGM simulations (Figure 3)
+│   ├── Run_discordantFGM.m           # Discordant-module FGM simulations (Figure 4)
+│   ├── Run_nestedFGM.m               # Nested FGM simulations (Figure 5, S5, S6)
+│   ├── Run_supplementary.m           # Steady-state CM validation (Figures S1–S3)
+│   ├── Run_ThresholdDAnalysis.m      # Threshold D sensitivity analysis (Figure S4)
+│   ├── Run_mainFigures.m             # Generate main figures 2–5
+│   └── Run_supplementaryFigures.m    # Generate supplementary figures S1–S6
+├── simulation_scripts/
 │   ├── simulatePleiotropicSSWM.m
 │   ├── simulatePleiotropicCM.m
-│   ├── simulateStandardSSWM.m
-│   ├── simulateStandardCM.m
-│   ├── simulateSteadyStateCM.m      # CM steady-state validation
-│   └── simulateSteadyStateRecomb.m  # Recombination variance
-├── analysis/                 # Analysis and prediction functions
+│   ├── simulateModularSSWM.m
+│   ├── simulateModularCM.m
+│   ├── simulateDiscordantSSWM.m
+│   ├── simulateDiscordantCM.m
+│   ├── simulateNestedSSWM.m
+│   ├── simulateNestedCM.m
+│   └── simulateSteadyStateCM.m
+├── analysis_scripts/
 │   ├── computeAverageTrajectory.m
 │   ├── predictModularSSWM.m
 │   ├── predictModularCM.m
 │   ├── predictFullRecomb.m
-│   ├── predictPleiotropicSSWM.m
-│   └── predictCM_ThresholdD.m   # Threshold D predictions
-├── utils/                    # Utility functions
+│   └── predictPleiotropicSSWM.m
+├── utils/
 │   ├── initializeSimParams.m
 │   ├── findInitialPhenotypes.m
 │   ├── freezeParam.m
 │   ├── preRunSimulation.m
 │   └── initializeGenomeTheta.m
-├── figures/                  # Figure generation scripts
-│   ├── makeFigure2.m - makeFigure6.m
-│   ├── makeFigure_StandardFGM.m
-│   ├── makeFigureS_SteadyStateCM.m       # Supp: CM validation
-│   ├── makeFigureS_SteadyStateRecomb.m   # Supp: Variance
-│   ├── makeFigureS_NestedFGMDistributions.m  # Supp: Distributions
-│   └── makeFigureS_ThresholdDTrajectories.m  # Supp: D threshold
-├── setup.m                   # Path configuration
+├── figure_scripts/
+│   ├── makeFigure2_Generations.m
+│   ├── makeFigure3_Generations.m
+│   ├── makeFigure4_Generations.m
+│   ├── makeFigure5_Generations.m
+│   ├── makeFigureS_SteadyStateCM.m
+│   ├── makeFigureS_ThresholdDTrajectories.m
+│   └── makeFigureS_NestedFGMDistributions.m
+├── LTEE_analysis/
+│   └── notebooks/
+│       └── ltee_analysis_revised.ipynb   # LTEE metagenomic analysis (Figure 6)
+├── reproduce_all.m               # Reproduce all simulations and figures (~10 hours, 10 cores)
+├── test_all.m                    # Pipeline verification (~15 minutes)
 ├── README.md
 └── LICENSE
 ```
@@ -79,74 +71,131 @@ project_root/
 
 ## Requirements
 
-### Software
-- **MATLAB R2020a** or later (developed on R2025a)
+### MATLAB (Figures 2–5, S1–S6)
+- MATLAB R2025a
 
-### Required Toolboxes
-| Toolbox | Required | Purpose |
-|---------|----------|---------|
-| Statistics and Machine Learning | Yes | `mnrnd`, `poissrnd`, `datasample` |
-| Symbolic Math | Yes | `solve`, `syms` in predictions |
-| Parallel Computing | Optional | `parfor` acceleration |
+| Toolbox | Purpose |
+|---------|---------|
+| Statistics and Machine Learning | `mnrnd`, `poissrnd`, `datasample` |
+| Symbolic Math | `syms`, `solve` in `findInitialPhenotypes` |
+| Parallel Computing | `parfor` acceleration |
 
-### System Requirements
-- Memory: 8 GB minimum, 16+ GB recommended
-- Disk: ~1 GB for results
+### Python (Figure 6)
+- Python 3.8 or later
+- Dependencies: `numpy`, `pandas`, `matplotlib`
+- LTEE metagenomic data (see below)
 
 ---
 
-## Quick Start
+## LTEE Data Setup (Figure 6)
+
+The LTEE analysis notebook requires data from Good et al. (2017), which is not included in this repository.
+
+1. Download the repository ZIP from https://github.com/benjaminhgood/LTEE-metagenomic
+2. Unzip and place the resulting `LTEE-metagenomic-master` folder at `LTEE_analysis/LTEE-metagenomic-master/` (one level above the notebook).
+
+The expected directory layout is:
+
+```
+LTEE_analysis/
+├── LTEE-metagenomic-master/   ← place downloaded data here
+│   └── data_files/
+└── notebooks/
+    └── ltee_analysis_revised.ipynb
+```
+
+Alternatively, update `LTEE_REPO_PATH` in the Setup cell of the notebook to point to your local copy.
+
+---
+
+## Reproducing Paper Results
+
+To verify the pipeline before a full run (~15 minutes, reduced parameter sets):
 
 ```matlab
-% 1. Setup paths
 cd /path/to/project
-setup
+test_all
+```
 
-% 2. Run demo (5-10 minutes)
-Run_modularFGM('demo')
+To reproduce all simulations and figures (~10 hours on 10 cores):
 
-% 3. Run full simulations (hours)
-Run_modularFGM('full')
+```matlab
+cd /path/to/project
+reproduce_all
+```
+
+Output files are written to `results/`, `results_supplementary/`, and their respective `Figures/` subdirectories.
+
+---
+
+## Running Individual Models
+
+Each driver script accepts `'reproduce'` (default) or `'test'` as the mode argument.
+
+```matlab
+Run_pleiotropicFGM('reproduce')           % Figure 2
+Run_modularFGM('reproduce')               % Figure 3
+Run_discordantFGM('reproduce')            % Figure 4
+Run_nestedFGM('reproduce')               % Figure 5, S5  — symmetric [n1=10, n2=10]
+Run_nestedFGM('reproduce', {}, [10, 20]) % Figure S6     — asymmetric [n1=10, n2=20]
+Run_supplementary('reproduce')           % Figures S1–S3
+Run_ThresholdDAnalysis('reproduce')      % Figure S4
+```
+
+After simulations complete, generate figures with:
+
+```matlab
+Run_mainFigures('reproduce')           % Figures 2–5
+Run_supplementaryFigures('reproduce')  % Figures S1–S6
+```
+
+Individual figures can be regenerated without rerunning the others:
+
+```matlab
+Run_mainFigures('reproduce', 3)           % Figure 3 only
+Run_supplementaryFigures('reproduce', 4)  % Figure S4 only
 ```
 
 ---
 
-## Reproducing Paper Figures
+## Figure Index
 
-| Figure | Command |
-|--------|---------|
-| Figure 2 | `Run_pleiotropicFGM('full')` |
-| Figures 3-6 | `Run_modularFGM('full')` |
+### Main Figures
+
+| Figure | Description | Source |
+|--------|-------------|--------|
+| 2 | Evolutionary dynamics on the pleiotropic GPFM | `Run_pleiotropicFGM` |
+| 3 | Evolutionary dynamics on the modular GPFM | `Run_modularFGM` |
+| 4 | Evolutionary dynamics on the discordant-module GPFM | `Run_discordantFGM` |
+| 5 | Evolutionary dynamics on the nested FGM | `Run_nestedFGM` |
+| 6 | LTEE metagenomic analysis | `ltee_analysis_revised.ipynb` |
 
 ### Supplementary Figures
 
-| Figure | Description | Command |
-|--------|-------------|---------|
-| Fig S1-S6 | CM steady-state validation | `Run_supplementary('full')` |
-| Fig S_Recomb | Variance at recombination balance | `Run_supplementary('full')` |
-| Fig S_Nested | Nested FGM distributions | `Run_supplementary('full')` |
-| Fig S_ThresholdD | Threshold D sensitivity | `Run_supplementary('full')` |
-
-To generate all supplementary figures:
-```matlab
-Run_supplementary('full')    % Full analysis
-Run_supplementary('demo')    % Quick demo
-Run_supplementary('figures') % Figures only (requires existing data)
-```
+| Figure | Description | Simulation required |
+|--------|-------------|---------------------|
+| S1 | Steady-state CM rate-of-adaptation: main validation | `Run_supplementary` |
+| S2 | Steady-state CM: parameter ranges | `Run_supplementary` |
+| S3 | Steady-state CM: weighting scheme comparisons | `Run_supplementary` |
+| S4 | Threshold D sensitivity (D = 10, 100, 1000, 10000) | `Run_ThresholdDAnalysis` |
+| S5 | Nested FGM mutation-effect distributions | `Run_nestedFGM` |
+| S6 | Asymmetric nested FGM dynamics (n1=10, n2=20) | `Run_nestedFGM('reproduce', {}, [10,20])` |
 
 ---
 
-## Parameters
+## Key Parameters
 
 | Parameter | Symbol | Default | Description |
 |-----------|--------|---------|-------------|
-| `popSize` | N | 10^4 | Population size |
-| `mutationRate` | μ | 10^-7 (SSWM) / 2×10^-4 (CM) | Mutation rate |
-| `deltaTrait` | δ | 0.1 | Mutational step size |
-| `landscapeStdDev` | σ | 2 | Fitness landscape width |
-| `ellipseRatio` | a₁/a₂ | √2 | Selection anisotropy |
-| `geneticTargetSize` | [K₁,K₂] | [10, 10] | Loci per module |
-| `recombinationRate` | ρ | 0-1 | Recombination rate |
+| `popSize` | $N$ | $10^4$ | Population size |
+| `mutationRate` | $U$ | $10^{-7}$ (SSWM), $2×10^{-4}$ (CM) | Genome-wide mutation rate |
+| `deltaTrait` | $\delta$ | 0.1 | Mutational step size |
+| `landscapeStdDev` | $\sigma$ | 2 | Fitness landscape width |
+| `ellipseRatio` | a1/a2 | $\sqrt2$ | Selection anisotropy |
+| `geneticTargetSize` | [K1, K2] | [10, 10] | Loci per module, equivalent to $L_1, L_2$ in the manuscript |
+| `recombinationRate` | $\rho$ | 0 or 1 | Recombination rate |
+
+Parameters are set in each `Run_*.m` script and passed to simulations via `initializeSimParams`.
 
 ---
 
@@ -156,9 +205,7 @@ Run_supplementary('figures') % Figures only (requires existing data)
 @article{kim2025module,
   title={Module-Selection Balance in the Evolution of Modular Organisms},
   author={Kim, Minkyu and Ardell, Sarah M. and Kryazhimskiy, Sergey},
-  journal={Genetics},
-  year={2025},
-  doi={10.XXXX/genetics.XXX.XXXXXX}
+  year={2025}
 }
 ```
 
@@ -166,13 +213,12 @@ Run_supplementary('figures') % Figures only (requires existing data)
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
 ## Contact
 
-**Minkyu Kim**  
+Minkyu Kim  
 Department of Computational Biology, Cornell University  
-Email: mk2687@cornell.edu  
-GitHub: [@mkkim1894](https://github.com/mkkim1894)
+mk2687@cornell.edu

@@ -2,10 +2,9 @@ function simParams = initializeSimParams(varargin)
 % initializeSimParams - Initializes simulation parameters for a 2D Fisher's Geometric Model (FGM).
 % 
 % Description:
-%   This function sets default values for simulation parameters and allows
-%   customization through optional input arguments. It returns a structure 
-%   containing the parameters and generates initial phenotypes based on 
-%   provided or default settings.
+%   Sets default simulation parameters and allows customization through
+%   optional name-value pairs. Returns a structure containing all parameters
+%   and generates initial phenotypes from the provided angles.
 % 
 % Inputs:
 %   varargin - Optional name-value pairs to override default parameter values or opt-out parameters.
@@ -17,7 +16,8 @@ function simParams = initializeSimParams(varargin)
 %               initial phenotypes.
 % 
 % Example Usage:
-%   simParams = initializeSimParams('numIteration', 500, 'popSize', 5e4, 'omitParams', {'mutationRate'});
+%   simParams = initializeSimParams('numIteration', 500, 'popSize', 5e4, ...
+%                                   'discordantAngles', [pi/16, 7*pi/16]);
 %
 % Reference:
 %   Kim, M., Ardell, S. M., & Kryazhimskiy, S. (2025).
@@ -36,13 +36,14 @@ function simParams = initializeSimParams(varargin)
     addParameter(p, 'landscapeStdDev', 2); % Standard deviation of the fitness landscape
     addParameter(p, 'deltaTrait', 0.1); % Step size for mutational changes in traits
     addParameter(p, 'ellipseRatio', sqrt(2)); % Desired aspect ratio for ellipse parameters
-    addParameter(p, 'geneticTargetSize', [10, 10]); % Size of the genetic target (trait space)
+    addParameter(p, 'geneticTargetSize', [10, 10]); % Size of the genetic target
     addParameter(p, 'initialFitness', 0.25); % Initial fitness value
     addParameter(p, 'initialAngles', [atan2(1, 6.4), atan2(1, 3.2), ...
-        atan2(1, 1.6), atan2(1, 0.8), atan2(1, 0.4), atan2(1, 0.2)]); % Initial angles in the phenotypic space
+        atan2(1, 1.6), atan2(1, 0.8), atan2(1, 0.4), atan2(1, 0.2)]); % Initial angles in phenotype space
     addParameter(p, 'popSize', 10^4); % Population size
     addParameter(p, 'mutationRate', 10^-7); % Mutation rate
-    addParameter(p, 'recombinationRate', 0); % Recombination rate, default is no recombination
+    addParameter(p, 'recombinationRate', 0); % Recombination rate
+    addParameter(p, 'discordantAngles', []); % [theta1, theta2] for discordant-module GPM
     addParameter(p, 'omitParams', {}); % List of parameters to exclude
 
     % Parse input arguments
@@ -56,7 +57,7 @@ function simParams = initializeSimParams(varargin)
     % Generate normalized ellipse parameters based on the provided ellipseRatio if it's not omitted
     if ~isfield(simParams, 'ellipseRatio')
         warning('Ellipse ratio is not provided or omitted. Default [1, 1] ellipse parameters are used.');
-        simParams.ellipseParams = [1, 1]; % Default to isotropic ellipse if omitted
+        simParams.ellipseParams = [1, 1];
     else
         if simParams.ellipseRatio >= 1
             simParams.ellipseParams = [1, 1/simParams.ellipseRatio];
@@ -73,6 +74,6 @@ function simParams = initializeSimParams(varargin)
         warning('Initial angles omitted. Initial phenotypes are not generated.');
     end
 
-    % Remove the 'omitParams' field since it is no longer needed
+    % Remove 'omitParams' itself — it is an internal bookkeeping field, not a simulation parameter
     simParams = rmfield(simParams, 'omitParams');
 end

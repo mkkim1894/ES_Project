@@ -1,25 +1,28 @@
 function [genomeParams] = initializeGenomeTheta(L, simParams, seed)
-% initializeGenomeTheta - Initialize genome parameters for pleiotropic FGM.
+% initializeGenomeTheta - Initialize genome for pleiotropic FGM simulations.
 %
 % Description:
-%   Generates pleiotropic angle assignments and initial genome states for
-%   the pleiotropic Fisher's Geometric Model. Each locus is assigned a random
-%   angle that determines how mutations at that locus affect phenotype.
+%   Assigns random pleiotropic angles to L loci, then constructs an initial
+%   genome for each target phenotype via a greedy pass: locus ell is set to
+%   allele 1 if doing so reduces the Euclidean distance to the target phenotype.
+%   Starting from the all-zeros genome (phenotype [0,0]), this produces a genome
+%   whose encoded phenotype approximates the target.
 %
 % Inputs:
 %   L         - Number of loci in the genome
-%   simParams - Structure containing simulation parameters including:
-%       .initialPhenotypes - Matrix of initial phenotype coordinates
-%       .deltaTrait        - Mutational step size
+%   simParams - Structure containing simulation parameters:
+%       .initialPhenotypes - Matrix of target phenotype coordinates [nAngles x 2]
+%       .deltaTrait        - Mutational step size (delta)
 %   seed      - Random seed for reproducibility
 %
 % Outputs:
 %   genomeParams - Structure containing:
-%       .genomeTheta   - Vector [1 x L] of pleiotropic angles
-%       .initialGenomes - Matrix [nAngles x L] of initial allele states
+%       .genomeTheta       - Vector [1 x L] of pleiotropic angles, uniform on [0, 2*pi)
+%       .initialGenomes    - Matrix [nAngles x L] of initial allele states
+%       .currentPhenotypes - Matrix [nAngles x 2] of phenotypes encoded by initialGenomes
 %
 % Example:
-%   genomeParams = initializeGenomeTheta(1000, simParams, 42);
+%   genomeParams = initializeGenomeTheta(400, simParams, 1);
 %
 % Reference:
 %   Kim, M., Ardell, S. M., & Kryazhimskiy, S. (2025).
@@ -39,13 +42,13 @@ function [genomeParams] = initializeGenomeTheta(L, simParams, seed)
     targetPhenotypes = simParams.initialPhenotypes;
     delta = simParams.deltaTrait;
 
-    % Number of target phenotypes (assumed to be 6)
+    % Number of target phenotypes
     numPhenotypes = size(targetPhenotypes, 1);
 
     % Initialize outputs
     genomeTheta = 2 * pi * rand(1, L); % Sample theta values uniformly from [0, 2*pi]
     initialGenomes = zeros(numPhenotypes, L); % Start with all loci set to 0
-    currentPhenotypes = zeros(numPhenotypes, 2); % Start at [0, 0]
+    currentPhenotypes = zeros(numPhenotypes, 2); % Allele-0 genome produces zero phenotypic displacement
 
     % Iterate through each target phenotype
     for i = 1:numPhenotypes
