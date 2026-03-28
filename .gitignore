@@ -1,1 +1,29 @@
+# Simulation output data (deposit on Zenodo)
 *.mat
+
+# Figures
+*.eps
+*.pdf
+*.png
+*.fig
+
+# Results directories
+results/
+results_test/
+results_supplementary/
+
+# LTEE data (download separately per README instructions)
+LTEE_analysis/LTEE-metagenomic-master/
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# MATLAB
+*.asv
+*.m~
+
+# OS
+.DS_Store
+Thumbs.db

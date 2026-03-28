@@ -15,6 +15,19 @@ Four genotype-phenotype-fitness map (GPFM) models are implemented — Pleiotropi
 
 ---
 
+## Data Availability
+
+Pre-computed simulation output files (`.mat`) are deposited on Zenodo at **[DOI — to be added upon publication]**. To regenerate all figures directly from these files without rerunning simulations, download the archive, extract the contents into the project root so that `results/` and `results_supplementary/` are present, then run:
+
+```matlab
+Run_mainFigures('reproduce')
+Run_supplementaryFigures('reproduce')
+```
+
+To reproduce the simulations from scratch (~10 hours on 10 cores), see [Reproducing Paper Results](#reproducing-paper-results) below.
+
+---
+
 ## Repository Structure
 
 ```
