@@ -7,16 +7,14 @@ function [resultDiscordantCM] = simulateDiscordantCM(simParams)
 %   simulateModularCM with the addition of the M-transformation from latent
 %   chromosome states y to functional traits x.
 %
-%   Beneficial (1->0, +delta) and deleterious (0->1, -delta) mutations on
-%   each chromosome are drawn separately each generation with correct rates:
 %       Beneficial rate for individual j, chromosome k:
-%           mu * b_jk = U/(2*K_k) * max(-y_jk, 0) / delta
+%           mu * b_jk = U/(2*L_k) * max(-y_jk, 0) / delta
 %       Deleterious rate for individual j, chromosome k:
-%           mu * (K_k - b_jk) = U/(2*K_k) * max(K_k*delta + y_jk, 0) / delta
+%           mu * (L_k - b_jk) = U/(2*L_k) * max(L_k*delta + y_jk, 0) / delta
 %
-%   After mutation and recombination, y values are rounded to the nearest
-%   multiple of delta and clamped to <= 0, enforcing the discrete locus
-%   structure. Fitness is always evaluated in x-space via x = M*y.
+%   The initial latent state is lattice-initialized to the nearest multiple of delta
+%   and clamped to <= 0, enforcing the discrete locus structure. Fitness is always
+%   evaluated in x-space via x = M*y.
 %
 %   Trait mapping:
 %       x1 = y1*cos(theta1) + y2*cos(theta2)
@@ -35,7 +33,7 @@ function [resultDiscordantCM] = simulateDiscordantCM(simParams)
 %       .deltaTrait         - Mutational step size (delta)
 %       .landscapeStdDev    - Fitness landscape width (sigma)
 %       .ellipseParams      - Ellipse axes [a1, a2]
-%       .geneticTargetSize  - Loci per chromosome [K1, K2]
+%       .geneticTargetSize  - Loci per chromosome [L1, L2]
 %       .recombinationRate  - Recombination rate (rho)
 %       .numIteration       - Number of replicate simulations
 %       .maxGenerations     - (Optional) hard cap, default 1e6
@@ -83,7 +81,7 @@ function [resultDiscordantCM] = simulateDiscordantCM(simParams)
     deltaTrait        = simParams.deltaTrait;
     landscapeStdDev   = simParams.landscapeStdDev;
     ellipseParams     = simParams.ellipseParams;
-    geneticTargetSize = simParams.geneticTargetSize;  % [K1, K2]
+    geneticTargetSize = simParams.geneticTargetSize;  % [L1, L2]
     recombinationRate = simParams.recombinationRate;
     finalFitnessThreshold = 0.99;
 
@@ -93,17 +91,18 @@ function [resultDiscordantCM] = simulateDiscordantCM(simParams)
         maxGenerations = 1e6;
     end
 
-    % Per-locus rate: mu_k = U / (2*K_k)
     mu1   = mutationRate / (2 * geneticTargetSize(1));
     mu2   = mutationRate / (2 * geneticTargetSize(2));
-    K1del = geneticTargetSize(1) * deltaTrait;   % upper boundary chr 1
-    K2del = geneticTargetSize(2) * deltaTrait;   % upper boundary chr 2
+    L1del = geneticTargetSize(1) * deltaTrait;   
+    L2del = geneticTargetSize(2) * deltaTrait;   
     invD  = 1 / deltaTrait;
 
     for i_pos = 1:nPos
         initialPhenotype = allInitialPhenotypes(i_pos, :)';
-        initialY         = M \ initialPhenotype;
-        % initialY may not lie on the delta-lattice; snaps on first operation.
+        % Discretize initial latent state to delta-lattice and clamp to <= 0
+        initialY = M \ initialPhenotype;
+        initialY = -deltaTrait * round(-initialY / deltaTrait);
+        initialY = min(initialY, 0);
 
         x0         = M * initialY;
         Fitness    = -((x0(1)/ellipseParams(1))^2 + (x0(2)/ellipseParams(2))^2);
@@ -138,16 +137,14 @@ function [resultDiscordantCM] = simulateDiscordantCM(simParams)
                     break;
                 end
 
-                y1col = populationMatrix(:, 1);
-                y2col = populationMatrix(:, 2);
-
                 %% --- Chromosome 1 mutations ---
+                y1col = populationMatrix(:, 1);
                 % Beneficial (1->0, +delta on y1): mu1 * max(-y1,0)/delta
                 ben1_rates = mu1 * max(-y1col, 0) * invD;
                 totalBen1  = sum(ben1_rates);
 
-                % Deleterious (0->1, -delta on y1): mu1 * max(K1*delta+y1,0)/delta
-                del1_rates = mu1 * max(K1del + y1col, 0) * invD;
+                % Deleterious (0->1, -delta on y1: mu1 * max(L1del + y1,0)/delta
+                del1_rates = mu1 * max(L1del + y1col, 0) * invD;
                 totalDel1  = sum(del1_rates);
 
                 numBen1 = poissrnd(totalBen1);
@@ -155,7 +152,6 @@ function [resultDiscordantCM] = simulateDiscordantCM(simParams)
                     mutIDs = datasample(1:popSize, min(numBen1, nnz(ben1_rates>0)), ...
                         'Weights', ben1_rates, 'Replace', false);
                     populationMatrix(mutIDs, 1) = populationMatrix(mutIDs, 1) + deltaTrait;
-                    populationMatrix(mutIDs, 1) = min(-deltaTrait * round(-populationMatrix(mutIDs,1)/deltaTrait), 0);
                 end
 
                 numDel1 = poissrnd(totalDel1);
@@ -163,7 +159,6 @@ function [resultDiscordantCM] = simulateDiscordantCM(simParams)
                     mutIDs = datasample(1:popSize, min(numDel1, nnz(del1_rates>0)), ...
                         'Weights', del1_rates, 'Replace', false);
                     populationMatrix(mutIDs, 1) = populationMatrix(mutIDs, 1) - deltaTrait;
-                    populationMatrix(mutIDs, 1) = min(-deltaTrait * round(-populationMatrix(mutIDs,1)/deltaTrait), 0);
                 end
 
                 %% --- Chromosome 2 mutations ---
@@ -172,7 +167,7 @@ function [resultDiscordantCM] = simulateDiscordantCM(simParams)
                 ben2_rates = mu2 * max(-y2col, 0) * invD;
                 totalBen2  = sum(ben2_rates);
 
-                del2_rates = mu2 * max(K2del + y2col, 0) * invD;
+                del2_rates = mu2 * max(L2del + y2col, 0) * invD;
                 totalDel2  = sum(del2_rates);
 
                 numBen2 = poissrnd(totalBen2);
@@ -180,7 +175,6 @@ function [resultDiscordantCM] = simulateDiscordantCM(simParams)
                     mutIDs = datasample(1:popSize, min(numBen2, nnz(ben2_rates>0)), ...
                         'Weights', ben2_rates, 'Replace', false);
                     populationMatrix(mutIDs, 2) = populationMatrix(mutIDs, 2) + deltaTrait;
-                    populationMatrix(mutIDs, 2) = min(-deltaTrait * round(-populationMatrix(mutIDs,2)/deltaTrait), 0);
                 end
 
                 numDel2 = poissrnd(totalDel2);
@@ -188,7 +182,6 @@ function [resultDiscordantCM] = simulateDiscordantCM(simParams)
                     mutIDs = datasample(1:popSize, min(numDel2, nnz(del2_rates>0)), ...
                         'Weights', del2_rates, 'Replace', false);
                     populationMatrix(mutIDs, 2) = populationMatrix(mutIDs, 2) - deltaTrait;
-                    populationMatrix(mutIDs, 2) = min(-deltaTrait * round(-populationMatrix(mutIDs,2)/deltaTrait), 0);
                 end
 
                 %% Recompute fitness in x-space after all mutations
@@ -214,9 +207,6 @@ function [resultDiscordantCM] = simulateDiscordantCM(simParams)
                         temp = recMatrix(1:numPairs, 2);
                         recMatrix(1:numPairs, 2)     = recMatrix(numPairs+1:end, 2);
                         recMatrix(numPairs+1:end, 2) = temp;
-
-                        % Round and clamp y2 after recombination
-                        recMatrix(:, 2) = min(-deltaTrait * round(-recMatrix(:,2)/deltaTrait), 0);
 
                         % Recompute fitness in x-space
                         x1_rec = recMatrix(:,1)*cos(theta1) + recMatrix(:,2)*cos(theta2);

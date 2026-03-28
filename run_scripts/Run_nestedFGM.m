@@ -178,7 +178,7 @@ function name = buildFilename(model, regime, sp)
         sp.ellipseParams(1)/sp.ellipseParams(2), sp.landscapeStdDev);
 
     if isfield(sp, 'geneticTargetSize')
-        name = sprintf('%s_K%d-%d', name, sp.geneticTargetSize(1), sp.geneticTargetSize(2));
+        name = sprintf('%s_L%d-%d', name, sp.geneticTargetSize(1), sp.geneticTargetSize(2));
     end
 
     if isfield(sp, 'moduleDimension')

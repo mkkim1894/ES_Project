@@ -29,33 +29,40 @@ function Run_modularFGM(mode)
     resultsRoot = tern(isTest, fullfile(projRoot, 'results_test'), fullfile(projRoot, 'results'));
 
     % ------------------ Config knobs ------------------
+    % Genome-wide mutation rate U is scaled as U = U_ref * (L/K) so that mu stays fixed as L changes:
+    %   SSWM: U_ref = 1e-7 (at K=10), mu = 1e-7 / (2*10) = 5e-9
+    %   CM:   U_ref = 2e-4 (at K=10), mu = 2e-4 / (2*10) = 1e-5
+    % Increasing L raises deleterious mutation supply (boundary = L*delta)
+    % while keeping beneficial dynamics unchanged.
+    K = 10;   % reference genetic target size; defines per-locus rate mu = U_ref / (2*K)
+    L = 200;  % actual number of loci per module (controls deleterious mutation supply)
     testCfg.numIteration      = 8;
     testCfg.preRunSteps       = 40;
     testCfg.numTimeStamp      = 20;
     testCfg.recombList        = [0, 0.01, 1];
     testCfg.initialAngles     = [atan2(1,6.4), atan2(1,3.2), atan2(1,1.6), ...
-                                 atan2(1,0.8), atan2(1,0.4), atan2(1,0.2)];
-    testCfg.mutationRateSlow  = 1e-7;
-    testCfg.mutationRateFast  = 2e-4;
+                             atan2(1,0.8), atan2(1,0.4), atan2(1,0.2)];
+    testCfg.mutationRateSlow  = 1e-7 * (L / K);
+    testCfg.mutationRateFast  = 2e-4 * (L / K);
     testCfg.popSize           = 10^4;
     testCfg.ellipseRatio      = sqrt(2);
     testCfg.deltaTrait        = 0.1;
     testCfg.landscapeStdDev   = 2;
-    testCfg.geneticTargetSize = [10, 10];
+    testCfg.geneticTargetSize = [L, L];
 
     reproduceCfg.numIteration      = 250;
     reproduceCfg.preRunSteps       = 200;
     reproduceCfg.numTimeStamp      = 20;
     reproduceCfg.recombList        = [0, 2e-4, 1e-3, 1e-2, 1e-1, 1];
     reproduceCfg.initialAngles     = [atan2(1,6.4), atan2(1,3.2), atan2(1,1.6), ...
-                                      atan2(1,0.8), atan2(1,0.4), atan2(1,0.2)];
-    reproduceCfg.mutationRateSlow  = 1e-7;
-    reproduceCfg.mutationRateFast  = 2e-4;
+                                  atan2(1,0.8), atan2(1,0.4), atan2(1,0.2)];
+    reproduceCfg.mutationRateSlow  = 1e-7 * (L / K);
+    reproduceCfg.mutationRateFast  = 2e-4 * (L / K);
     reproduceCfg.popSize           = 10^4;
     reproduceCfg.ellipseRatio      = sqrt(2);
     reproduceCfg.deltaTrait        = 0.1;
     reproduceCfg.landscapeStdDev   = 2;
-    reproduceCfg.geneticTargetSize = [10, 10];
+    reproduceCfg.geneticTargetSize = [L, L];
 
     C = tern(isTest, testCfg, reproduceCfg);
 
@@ -145,7 +152,7 @@ function name = buildFilename(model, regime, sp)
 
     % ModularFGM parameter
     if isfield(sp, 'geneticTargetSize')
-        name = sprintf('%s_K%d-%d', name, sp.geneticTargetSize(1), sp.geneticTargetSize(2));
+        name = sprintf('%s_L%d-%d', name, sp.geneticTargetSize(1), sp.geneticTargetSize(2));
     end
 
     % NestedFGM parameter

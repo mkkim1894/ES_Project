@@ -50,37 +50,39 @@ function Run_mainFigures(mode, figures)
     % Parameters (used only to construct simParams for file matching,
     % not for running simulations)
     % ----------------------------------------------------------------
+    K = 10;   % reference genetic target size; defines per-locus rate mu = U_ref / (2*K)
+    L = 200;  % number of loci per module
     switch lower(mode)
         case 'test'
             isTest = true;
             C.numIteration      = 4;
             C.initialAngles     = [atan2(1,6.4), atan2(1,1.6), atan2(1,0.4)];
-            C.mutationRateSlow  = 1e-7;
-            C.mutationRateFast  = 2e-4;
+            C.mutationRateSlow  = 1e-7 * (L / K);
+            C.mutationRateFast  = 2e-4 * (L / K);
             C.popSize           = 1e3;
             C.ellipseRatio      = sqrt(2);
             C.deltaTrait        = 0.1;
             C.landscapeStdDev   = 2;
-            C.geneticTargetSize = [10, 10];
+            C.geneticTargetSize = [L, L];
             C.discordantAngles  = [pi/16, 7*pi/16];
             C.moduleDimension   = [10, 10];
-            C.L_CM              = 400;
+            C.L_CM              = 2*L;
 
         case {'reproduce', 'full'}
             isTest = false;
             C.numIteration      = 250;
             C.initialAngles     = [atan2(1,6.4), atan2(1,3.2), atan2(1,1.6), ...
                                    atan2(1,0.8), atan2(1,0.4), atan2(1,0.2)];
-            C.mutationRateSlow  = 1e-7;
-            C.mutationRateFast  = 2e-4;
+            C.mutationRateSlow  = 1e-7 * (L / K);
+            C.mutationRateFast  = 2e-4 * (L / K);
             C.popSize           = 1e4;
             C.ellipseRatio      = sqrt(2);
             C.deltaTrait        = 0.1;
             C.landscapeStdDev   = 2;
-            C.geneticTargetSize = [10, 10];
+            C.geneticTargetSize = [L, L];
             C.discordantAngles  = [pi/16, 7*pi/16];
             C.moduleDimension   = [10, 10];
-            C.L_CM              = 400;
+            C.L_CM              = 2*L;
 
         otherwise
             error('Unknown mode ''%s''. Use ''test'' or ''reproduce''.', mode);

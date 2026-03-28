@@ -8,11 +8,12 @@ function [resultDiscordantSSWM] = simulateDiscordantSSWM(simParams)
 %   with the addition of the M-transformation from latent chromosome states
 %   y to functional traits x.
 %
-%   The clock runs at the beneficial mutation supply only. Both +delta and
-%   -delta displacements are proposed with equal probability; the Kimura
-%   fixation formula handles deleterious outcomes. After each fixation, y
-%   values are rounded to the nearest multiple of delta and clamped to <= 0,
-%   enforcing the discrete locus structure of the underlying binary model.
+%   The clock runs at the beneficial mutation supply only. Since deleterious mutations
+%   have negligible fixation probability under SSWM, only beneficial mutations (+delta)
+%   are proposed. The Kimura fixation formula handles the possibility that a beneficial
+%   mutation is lost to drift.
+%   The initial latent state is lattice-initialized to the nearest multiple of delta and clamped
+%   to <= 0, enforcing the discrete locus structure of the underlying binary genotype model.
 %
 %   Trait mapping:
 %       x1 = y1*cos(theta1) + y2*cos(theta2)
@@ -31,7 +32,7 @@ function [resultDiscordantSSWM] = simulateDiscordantSSWM(simParams)
 %       .deltaTrait        - Mutational step size (delta)
 %       .landscapeStdDev   - Fitness landscape width (sigma)
 %       .ellipseParams     - Ellipse axes [a1, a2]
-%       .geneticTargetSize - Loci per chromosome [K1, K2]
+%       .geneticTargetSize - Loci per chromosome [L1, L2]
 %       .numIteration      - Number of replicate simulations
 %
 % Outputs:
@@ -72,16 +73,18 @@ function [resultDiscordantSSWM] = simulateDiscordantSSWM(simParams)
     deltaTrait        = simParams.deltaTrait;
     landscapeStdDev   = simParams.landscapeStdDev;
     ellipseParams     = simParams.ellipseParams;
-    geneticTargetSize = simParams.geneticTargetSize;  % [K1, K2]
+    geneticTargetSize = simParams.geneticTargetSize;  % [L1, L2]
 
-    % Per-locus rate mu = U/(2*K_k); beneficial supply = mu * b_k = mu * max(-y_k,0)/delta
+    % Per-locus rate mu = U/(2*L_k); beneficial supply = mu * b_k = mu * max(-y_k,0)/delta
     invTwoK1 = 1 / (2 * deltaTrait * geneticTargetSize(1));
     invTwoK2 = 1 / (2 * deltaTrait * geneticTargetSize(2));
 
     for i_pos = 1:nPos
         initialPhenotype = allInitialPhenotypes(i_pos, :)';
-        initialY         = M \ initialPhenotype;
-        % initialY may not lie on the delta-lattice; it will snap on first fixation.
+        % Discretize initial latent state to delta-lattice and clamp to <= 0
+        initialY = M \ initialPhenotype;
+        initialY = -deltaTrait * round(-initialY / deltaTrait);
+        initialY = min(initialY, 0);
 
         temporaryTable    = cell(1, simParams.numIteration);
         terminationStatus = zeros(1, simParams.numIteration);
@@ -107,7 +110,7 @@ function [resultDiscordantSSWM] = simulateDiscordantSSWM(simParams)
                 y1cur = EvolutionLog.MetaInfo(changeTime, 1);
                 y2cur = EvolutionLog.MetaInfo(changeTime, 2);
 
-                %% Beneficial supply: mu * b_k = U/(2*K_k) * max(-y_k,0)/delta
+                %% Beneficial supply: mu * b_k = U/(2*L_k) * max(-y_k,0)/delta
                 beneficialRate1     = mutationRate * max(-y1cur, 0) * invTwoK1;
                 beneficialRate2     = mutationRate * max(-y2cur, 0) * invTwoK2;
                 totalBeneficialRate = beneficialRate1 + beneficialRate2;
@@ -128,14 +131,11 @@ function [resultDiscordantSSWM] = simulateDiscordantSSWM(simParams)
                     mutChr = 2;
                 end
 
-                %% Propose ±delta with equal probability
-                direction = 2 * (rand < 0.5) - 1;
+                %% Propose +delta (beneficial direction)
+                % Deleterious mutations are excluded
+                direction = 1;
                 yNew        = [y1cur; y2cur];
                 yNew(mutChr) = yNew(mutChr) + direction * deltaTrait;
-
-                %% Round to nearest delta-multiple and clamp to <= 0
-                yNew(mutChr) = -deltaTrait * round(-yNew(mutChr) / deltaTrait);
-                yNew(mutChr) = min(yNew(mutChr), 0);
 
                 xNew       = M * yNew;
                 newFitness = -((xNew(1)/ellipseParams(1))^2 + (xNew(2)/ellipseParams(2))^2);

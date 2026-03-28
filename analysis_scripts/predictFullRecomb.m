@@ -29,7 +29,7 @@ function [analyticalTrajectories] = predictFullRecomb(simParams, ~)
 
     N     = simParams.popSize;
     U     = simParams.mutationRate;
-    K     = simParams.geneticTargetSize;
+    L     = simParams.geneticTargetSize;
     a     = simParams.ellipseParams;
     delta = simParams.deltaTrait;
     sigW  = simParams.landscapeStdDev;
@@ -39,13 +39,13 @@ function [analyticalTrajectories] = predictFullRecomb(simParams, ~)
     maxIter = 1e6;
 
     % Full recombination analytical parameters
-    A1 = log((N^2 * U) / (K(1) * a(1)^2));
-    A2 = log((N^2 * U) / (K(2) * a(2)^2));
+    A1 = log((N^2 * U) / (L(1) * a(1)^2));
+    A2 = log((N^2 * U) / (L(2) * a(2)^2));
 
     gamma1 = (2 * delta^2) / ...
-        (a(1)^2 * (log((4 * K(1) * delta^2) / (U * a(1)^2)))^2);
+        (a(1)^2 * (log((4 * L(1) * delta^2) / (U * a(1)^2)))^2);
     gamma2 = (2 * delta^2) / ...
-        (a(2)^2 * (log((4 * K(2) * delta^2) / (U * a(2)^2)))^2);
+        (a(2)^2 * (log((4 * L(2) * delta^2) / (U * a(2)^2)))^2);
 
     for i_pos = 1:nPos
         WT = initialPhenotypes(i_pos, :);

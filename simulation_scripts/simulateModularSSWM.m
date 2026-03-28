@@ -6,11 +6,13 @@ function [resultModularSSWM] = simulateModularSSWM(simParams)
 %   Geometric Model (FGM) under the SSWM regime, where mutations fix sequentially
 %   and the population remains monomorphic between fixation events.
 %
-%   The clock runs at the beneficial mutation supply only. Both +delta and -delta
-%   displacements are proposed with equal probability; the Kimura fixation formula
-%   handles deleterious outcomes. After each fixation, trait values are rounded to
-%   the nearest multiple of delta and clamped to <= 0, enforcing the discrete locus
-%   structure of the underlying binary genotype model.
+%   The clock runs at the beneficial mutation supply only. Since deleterious mutations
+%   have negligible fixation probability under SSWM, only beneficial mutations (+delta)
+%   are proposed. The Kimura fixation formula handles the possibility that a beneficial
+%   mutation is lost to drift.
+%   The initial phenotype is lattice-initialized to the nearest multiple of delta and clamped
+%   to <= 0 at initialization, enforcing the discrete locus structure of the
+%   underlying binary genotype model.
 %
 %   Termination conditions:
 %     1. Fitness reaches 0.99 (terminationStatus = 1)
@@ -25,7 +27,7 @@ function [resultModularSSWM] = simulateModularSSWM(simParams)
 %       .deltaTrait        - Mutational step size (delta)
 %       .landscapeStdDev   - Fitness landscape width parameter (sigma)
 %       .ellipseParams     - Ellipse axes [a1, a2] for anisotropic selection
-%       .geneticTargetSize - Genetic target size per module [K1, K2]
+%       .geneticTargetSize - Number of loci per module [L1, L2]
 %       .numIteration      - Number of replicate simulations
 %
 % Outputs:
@@ -53,11 +55,11 @@ function [resultModularSSWM] = simulateModularSSWM(simParams)
     deltaTrait           = simParams.deltaTrait;
     landscapeStdDev      = simParams.landscapeStdDev;
     ellipseParams        = simParams.ellipseParams;
-    geneticTargetSize    = simParams.geneticTargetSize;  % [K1, K2]
+    geneticTargetSize    = simParams.geneticTargetSize;  % [L1, L2]
 
-    % Per-locus rate: mu = U / (2*K_i) for each direction
-    % Beneficial supply per module i: mu * b_i = U/(2*K_i) * max(-x_i,0)/delta
-    % = mutationRate * max(-x_i, 0) / (2 * deltaTrait * K_i)
+    % Per-locus rate: mu = U / (2*L_i) for each direction
+    % Beneficial supply per module i: mu * b_i = U/(2*L_i) * max(-x_i,0)/delta
+    % = mutationRate * max(-x_i, 0) / (2 * deltaTrait * L_i)
     invTwoK1 = 1 / (2 * deltaTrait * geneticTargetSize(1));
     invTwoK2 = 1 / (2 * deltaTrait * geneticTargetSize(2));
 
@@ -68,9 +70,11 @@ function [resultModularSSWM] = simulateModularSSWM(simParams)
         terminationStatus = zeros(1, simParams.numIteration);
 
         parfor i_repeat = 1:simParams.numIteration
-            initialPhenotypeSlice = initialPhenotypes;
+            % Discretize initial phenotype to delta-lattice and clamp to <= 0
+            initialPhenotypeSlice(1) = -deltaTrait * round(-initialPhenotypes(1) / deltaTrait);
+            initialPhenotypeSlice(2) = -deltaTrait * round(-initialPhenotypes(2) / deltaTrait);
+            initialPhenotypeSlice = min(initialPhenotypeSlice, 0);
             ellipseParamsSlice    = ellipseParams;
-            geneticTargetSizeSlice = geneticTargetSize;
 
             Fitness    = -((initialPhenotypeSlice(1)/ellipseParamsSlice(1))^2 + ...
                            (initialPhenotypeSlice(2)/ellipseParamsSlice(2))^2);
@@ -90,7 +94,7 @@ function [resultModularSSWM] = simulateModularSSWM(simParams)
                 x1cur = EvolutionLog.MetaInfo(changeTime, 1);
                 x2cur = EvolutionLog.MetaInfo(changeTime, 2);
 
-                %% Beneficial supply: mu * b_i = U/(2*K_i) * max(-x_i,0)/delta
+                %% Beneficial supply: mu * b_i = U/(2*L_i) * max(-x_i,0)/delta
                 beneficialRate1 = mutationRate * max(-x1cur, 0) * invTwoK1;
                 beneficialRate2 = mutationRate * max(-x2cur, 0) * invTwoK2;
                 totalBeneficialRate = beneficialRate1 + beneficialRate2;
@@ -112,17 +116,11 @@ function [resultModularSSWM] = simulateModularSSWM(simParams)
                     mutDim = 2;
                 end
 
-                %% Propose ±delta with equal probability
-                % Clock runs at beneficial rate; occasional deleterious proposals handled by Kimura. 
-                % Deleterious fixations are rare under SSWM and negligible.
-                direction = 2 * (rand < 0.5) - 1;
+                %% Propose +delta (beneficial direction)
+                % Deleterious mutations are excluded.
+                direction = 1;
                 newPhenotype    = [x1cur, x2cur];
                 newPhenotype(mutDim) = newPhenotype(mutDim) + direction * deltaTrait;
-
-                %% Round to nearest delta-multiple and clamp to <= 0
-                % Enforces discrete locus structure after fixation
-                newPhenotype(mutDim) = -deltaTrait * round(-newPhenotype(mutDim) / deltaTrait);
-                newPhenotype(mutDim) = min(newPhenotype(mutDim), 0);
 
                 newFitness    = -((newPhenotype(1)/ellipseParamsSlice(1))^2 + ...
                                   (newPhenotype(2)/ellipseParamsSlice(2))^2);

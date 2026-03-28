@@ -29,13 +29,20 @@ function Run_pleiotropicFGM(mode)
     resultsRoot = tern(isTest, fullfile(projRoot, 'results_test'), fullfile(projRoot, 'results'));
 
     % ------------------ Config knobs ------------------
+    K = 10;   % reference genetic target size; defines per-locus rate mu = U_ref / (2*K)
+    L = 200;  % number of loci per module (total loci = 2*L)
+    % Per-locus mutation rate mu = U_ref / (2*K), independent of L:
+    %   SSWM: U_ref = 1e-7 (at K=10), mu = 1e-7 / (2*10) = 5e-9
+    %   CM:   U_ref = 2e-4 (at K=10), mu = 2e-4 / (2*10) = 1e-5
+    % U is scaled as U = U_ref * (2*L/K) to keep mu fixed as L changes.
+
     testCfg.numIteration      = 8;
     testCfg.numTimeStamp      = 20;
     testCfg.initialAngles     = [atan2(1,6.4), atan2(1,0.2)];
-    testCfg.mutationRateSlow  = 1e-7;
-    testCfg.mutationRateFast  = 2e-4;
-    testCfg.L_SSWM            = 400;
-    testCfg.L_CM              = 400;
+    testCfg.mutationRateSlow  = 1e-7 * (2*L / K);
+    testCfg.mutationRateFast  = 2e-4 * (2*L / K);
+    testCfg.L_SSWM            = 2*L;
+    testCfg.L_CM              = 2*L;
     testCfg.popSize           = 10^4;
     testCfg.ellipseRatio      = sqrt(2);
     testCfg.deltaTrait        = 0.1;
@@ -44,11 +51,11 @@ function Run_pleiotropicFGM(mode)
     reproduceCfg.numIteration      = 250;
     reproduceCfg.numTimeStamp      = 20;
     reproduceCfg.initialAngles     = [atan2(1,6.4), atan2(1,3.2), atan2(1,1.6), ...
-                                 atan2(1,0.8), atan2(1,0.4), atan2(1,0.2)];
-    reproduceCfg.mutationRateSlow  = 1e-7;
-    reproduceCfg.mutationRateFast  = 2e-4;
-    reproduceCfg.L_SSWM            = 400;
-    reproduceCfg.L_CM              = 400;
+                                atan2(1,0.8), atan2(1,0.4), atan2(1,0.2)];
+    reproduceCfg.mutationRateSlow  = 1e-7 * (2*L / K);
+    reproduceCfg.mutationRateFast  = 2e-4 * (2*L / K);
+    reproduceCfg.L_SSWM            = 2*L;
+    reproduceCfg.L_CM              = 2*L;
     reproduceCfg.popSize           = 10^4;
     reproduceCfg.ellipseRatio      = sqrt(2);
     reproduceCfg.deltaTrait        = 0.1;

@@ -48,36 +48,42 @@ function Run_discordantFGM(mode, regimes)
                                fullfile(projRoot, 'results'));
 
     %% Configuration
+    K = 10;   % reference genetic target size; defines per-locus rate mu = U_ref / (2*K)
+    L = 200;  % number of loci per module (controls deleterious mutation supply)
+    % Per-locus mutation rate mu = U_ref / (2*K), independent of L:
+    %   SSWM: U_ref = 1e-7 (at K=10), mu = 1e-7 / (2*10) = 5e-9
+    %   CM:   U_ref = 2e-4 (at K=10), mu = 2e-4 / (2*10) = 1e-5
+    % U is scaled as U = U_ref * (L/K) to keep mu fixed as L changes.
+
     testCfg.numIteration      = 8;
     testCfg.preRunSteps       = 40;
     testCfg.numTimeStamp      = 20;
     testCfg.initialAngles     = [atan2(1,6.4), atan2(1,3.2), atan2(1,1.6), ...
-                                 atan2(1,0.8), atan2(1,0.4), atan2(1,0.2)];
-    testCfg.mutationRateSlow  = 1e-7;
-    testCfg.mutationRateFast  = 2e-4;
+                             atan2(1,0.8), atan2(1,0.4), atan2(1,0.2)];
+    testCfg.mutationRateSlow  = 1e-7 * (L / K);
+    testCfg.mutationRateFast  = 2e-4 * (L / K);
     testCfg.popSize           = 10^4;
     testCfg.ellipseRatio      = sqrt(2);
     testCfg.deltaTrait        = 0.1;
     testCfg.landscapeStdDev   = 2;
-    testCfg.geneticTargetSize = [10, 10];
+    testCfg.geneticTargetSize = [L, L];
     testCfg.discordantAngles  = [pi/16, 7*pi/16];
 
     reproduceCfg.numIteration      = 250;
     reproduceCfg.preRunSteps       = 200;
     reproduceCfg.numTimeStamp      = 20;
     reproduceCfg.initialAngles     = [atan2(1,6.4), atan2(1,3.2), atan2(1,1.6), ...
-                                      atan2(1,0.8), atan2(1,0.4), atan2(1,0.2)];
-    reproduceCfg.mutationRateSlow  = 1e-7;
-    reproduceCfg.mutationRateFast  = 2e-4;
+                                  atan2(1,0.8), atan2(1,0.4), atan2(1,0.2)];
+    reproduceCfg.mutationRateSlow  = 1e-7 * (L / K);
+    reproduceCfg.mutationRateFast  = 2e-4 * (L / K);
     reproduceCfg.popSize           = 10^4;
     reproduceCfg.ellipseRatio      = sqrt(2);
     reproduceCfg.deltaTrait        = 0.1;
     reproduceCfg.landscapeStdDev   = 2;
-    reproduceCfg.geneticTargetSize = [10, 10];
+    reproduceCfg.geneticTargetSize = [L, L];
     reproduceCfg.discordantAngles  = [pi/16, 7*pi/16];
 
     C = tern(isTest, testCfg, reproduceCfg);
-
     fprintf('\n=== Discordant FGM only (%s mode) ===\n', mode);
 
     %% Filter admissible initial angles in y-space
@@ -214,7 +220,7 @@ function name = buildFilename(model, regime, sp)
         sp.ellipseParams(1)/sp.ellipseParams(2), sp.landscapeStdDev);
 
     if isfield(sp, 'geneticTargetSize')
-        name = sprintf('%s_K%d-%d', name, sp.geneticTargetSize(1), sp.geneticTargetSize(2));
+        name = sprintf('%s_L%d-%d', name, sp.geneticTargetSize(1), sp.geneticTargetSize(2));
     end
 
     if isfield(sp, 'moduleDimension')

@@ -112,13 +112,13 @@ function dxdt = computeAdaptationRate(~, x, simParams, D, tol)
     a1    = simParams.ellipseParams(1);
     a2    = simParams.ellipseParams(2);
     sigW  = simParams.landscapeStdDev;
-    K1    = simParams.geneticTargetSize(1);
-    K2    = simParams.geneticTargetSize(2);
+    L1    = simParams.geneticTargetSize(1);
+    L2    = simParams.geneticTargetSize(2);
     U     = simParams.mutationRate;
 
     % Beneficial mutation rates for each module
-    U1 = U * abs(WT(1)) / (2 * delta * K1);
-    U2 = U * abs(WT(2)) / (2 * delta * K2);
+    U1 = U * abs(WT(1)) / (2 * delta * L1);
+    U2 = U * abs(WT(2)) / (2 * delta * L2);
 
     % Selection coefficients
     logW0 = -((WT(1) / a1)^2 + (WT(2) / a2)^2) / (2 * sigW^2);

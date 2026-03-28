@@ -36,7 +36,7 @@ function simParams = initializeSimParams(varargin)
     addParameter(p, 'landscapeStdDev', 2); % Standard deviation of the fitness landscape
     addParameter(p, 'deltaTrait', 0.1); % Step size for mutational changes in traits
     addParameter(p, 'ellipseRatio', sqrt(2)); % Desired aspect ratio for ellipse parameters
-    addParameter(p, 'geneticTargetSize', [10, 10]); % Size of the genetic target
+    addParameter(p, 'geneticTargetSize', [10, 10]); % Number of loci per module [L1, L2]
     addParameter(p, 'initialFitness', 0.25); % Initial fitness value
     addParameter(p, 'initialAngles', [atan2(1, 6.4), atan2(1, 3.2), ...
         atan2(1, 1.6), atan2(1, 0.8), atan2(1, 0.4), atan2(1, 0.2)]); % Initial angles in phenotype space

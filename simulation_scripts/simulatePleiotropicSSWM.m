@@ -4,7 +4,7 @@ function [resultPleiotropicSSWM] = simulatePleiotropicSSWM(simParams, genomePara
 % Description:
 %   Runs stochastic simulations where each mutation affects both traits with
 %   a pleiotropic angle. Mutations fix sequentially under SSWM dynamics.
-%   Only loci with selection coefficient s > 1/N are considered as beneficial
+%   Only loci with selection coefficient s > 0 are considered as beneficial
 %   mutation candidates.
 %
 %   Termination conditions:
@@ -50,9 +50,6 @@ function [resultPleiotropicSSWM] = simulatePleiotropicSSWM(simParams, genomePara
     % Precompute cos and sin of all locus angles
     cosTheta = cos(genomeTheta);
     sinTheta = sin(genomeTheta);
-
-    % Neutral threshold: mutations with s <= 1/N are effectively neutral
-    neutralThreshold = 1 / popSize;
 
     for i_pos = 1:length(simParams.initialAngles)
         initialPhenotypes = allInitialPhenotypes(i_pos, 1:end);
@@ -109,8 +106,8 @@ function [resultPleiotropicSSWM] = simulatePleiotropicSSWM(simParams, genomePara
                                        (newPhenotype2 ./ ellipseParamsSlice(2)).^2 ) / (2 * landscapeStdDev^2);
                     allS = newLogFitness - currentLogFitness;
 
-                    % Identify beneficial loci (s > 1/N)
-                    beneficialMask = allS > neutralThreshold;
+                    % Identify beneficial loci (s > 0)
+                    beneficialMask = allS > 0;
                     beneficialIdx = find(beneficialMask);
                     beneficialS = allS(beneficialMask);
                     numBeneficial = length(beneficialIdx);

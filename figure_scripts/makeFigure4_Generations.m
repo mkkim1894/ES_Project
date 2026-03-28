@@ -158,7 +158,7 @@ function picked = pickBestMatchingFile(files, simParamsRef)
         tags{end+1} = sprintf('s%.2f', simParamsRef.landscapeStdDev);
     end
     if isfield(simParamsRef, 'geneticTargetSize')
-        tags{end+1} = sprintf('K%d-%d', simParamsRef.geneticTargetSize(1), simParamsRef.geneticTargetSize(2));
+        tags{end+1} = sprintf('L%d-%d', simParamsRef.geneticTargetSize(1), simParamsRef.geneticTargetSize(2));
     end
     if isfield(simParamsRef, 'recombinationRate') && simParamsRef.recombinationRate > 0
         tags{end+1} = sprintf('R%.4f', simParamsRef.recombinationRate);

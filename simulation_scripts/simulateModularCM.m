@@ -9,13 +9,13 @@ function [resultModularCM] = simulateModularCM(simParams)
 %   drawn separately each generation with correct rates from the binary locus
 %   model:
 %       Beneficial rate for individual j, module i:
-%           mu * b_ji = U/(2*K_i) * max(-x_ji, 0) / delta
+%           mu * b_ji = U/(2*L_i) * max(-x_ji, 0) / delta
 %       Deleterious rate for individual j, module i:
-%           mu * (K_i - b_ji) = U/(2*K_i) * max(K_i*delta + x_ji, 0) / delta
+%           mu * (L_i - b_ji) = U/(2*L_i) * max(L_i*delta + x_ji, 0) / delta
 %
-%   After mutation and recombination, trait values are rounded to the nearest
-%   multiple of delta and clamped to <= 0, enforcing the discrete locus
-%   structure of the underlying binary genotype model.
+%   The initial phenotype is lattice-initialized to the nearest multiple of delta
+%   and clamped to <= 0, enforcing the discrete locus structure of the underlying
+%   binary genotype model.
 %
 %   Termination conditions:
 %     1. Mean fitness reaches 0.99 (terminationStatus = 1)
@@ -29,7 +29,7 @@ function [resultModularCM] = simulateModularCM(simParams)
 %       .deltaTrait         - Mutational step size (delta)
 %       .landscapeStdDev    - Fitness landscape width (sigma)
 %       .ellipseParams      - Ellipse axes [a1, a2]
-%       .geneticTargetSize  - Loci per module [K1, K2]
+%       .geneticTargetSize  - Loci per module [L1, L2]
 %       .recombinationRate  - Recombination rate (rho)
 %       .numIteration       - Number of replicate simulations
 %       .populationMatrices - (Optional) pre-initialized populations
@@ -59,7 +59,7 @@ function [resultModularCM] = simulateModularCM(simParams)
     deltaTrait        = simParams.deltaTrait;
     landscapeStdDev   = simParams.landscapeStdDev;
     ellipseParams     = simParams.ellipseParams;
-    geneticTargetSize = simParams.geneticTargetSize;  % [K1, K2]
+    geneticTargetSize = simParams.geneticTargetSize;  % [L1, L2]
     recombinationRate = simParams.recombinationRate;
     finalFitnessThreshold = 0.99;
 
@@ -67,13 +67,13 @@ function [resultModularCM] = simulateModularCM(simParams)
         warning('Pre-run population data not found for sexual CM. Using monomorphic initialization.');
     end
 
-    % Per-locus rate: mu = U / (2*K_i)
+    % Per-locus rate: mu = U / (2*L_i)
     % Beneficial rate_ji  = mu * max(-x_ji, 0) / delta
-    % Deleterious rate_ji = mu * max(K_i*delta + x_ji, 0) / delta
+    % Deleterious rate_ji = mu * max(L_i*delta + x_ji, 0) / delta
     mu1    = mutationRate / (2 * geneticTargetSize(1));  % per locus, module 1
     mu2    = mutationRate / (2 * geneticTargetSize(2));  % per locus, module 2
-    K1del  = geneticTargetSize(1) * deltaTrait;          % K1 * delta (upper boundary module 1)
-    K2del  = geneticTargetSize(2) * deltaTrait;          % K2 * delta (upper boundary module 2)
+    L1del  = geneticTargetSize(1) * deltaTrait;          % L1 * delta
+    L2del  = geneticTargetSize(2) * deltaTrait;          % L2 * delta
     invD   = 1 / deltaTrait;
 
     for i_pos = 1:length(simParams.initialAngles)
@@ -81,6 +81,11 @@ function [resultModularCM] = simulateModularCM(simParams)
             basePopulationMatrix = simParams.populationMatrices{i_pos};
         else
             initialPhenotype = allInitialPhenotypes(i_pos, 1:end);
+            % Discretize initial phenotype to delta-lattice and clamp to <= 0
+            initialPhenotype(1) = -deltaTrait * round(-initialPhenotype(1) / deltaTrait);
+            initialPhenotype(2) = -deltaTrait * round(-initialPhenotype(2) / deltaTrait);
+            initialPhenotype = min(initialPhenotype, 0);
+
             Fitness    = -((initialPhenotype(1)/ellipseParams(1))^2 + (initialPhenotype(2)/ellipseParams(2))^2);
             expFitness = exp(Fitness / (2*landscapeStdDev^2));
 
@@ -108,16 +113,14 @@ function [resultModularCM] = simulateModularCM(simParams)
             t = 1;
 
             while ~simulationEnd
-                x1col = populationMatrix(:, 1);
-                x2col = populationMatrix(:, 2);
-
                 %% --- Module 1 mutations ---
+                x1col = populationMatrix(:, 1);
                 % Beneficial (1->0): rate = mu1 * max(-x1,0) / delta
                 ben1_rates  = mu1 * max(-x1col, 0) * invD;   % [N x 1]
                 totalBen1   = sum(ben1_rates);
 
-                % Deleterious (0->1): rate = mu1 * max(K1*delta + x1, 0) / delta
-                del1_rates  = mu1 * max(K1del + x1col, 0) * invD;
+                % Deleterious (0->1): rate = mu1 * max(L1*delta + x1, 0) / delta
+                del1_rates  = mu1 * max(L1del + x1col, 0) * invD;
                 totalDel1   = sum(del1_rates);
 
                 % Beneficial mutations on module 1
@@ -126,8 +129,6 @@ function [resultModularCM] = simulateModularCM(simParams)
                     mutIDs = datasample(1:popSize, min(numBen1, nnz(ben1_rates>0)), ...
                         'Weights', ben1_rates, 'Replace', false);
                     populationMatrix(mutIDs, 1) = populationMatrix(mutIDs, 1) + deltaTrait;
-                    % Round and clamp
-                    populationMatrix(mutIDs, 1) = min(-deltaTrait * round(-populationMatrix(mutIDs,1)/deltaTrait), 0);
                 end
 
                 % Deleterious mutations on module 1
@@ -136,8 +137,6 @@ function [resultModularCM] = simulateModularCM(simParams)
                     mutIDs = datasample(1:popSize, min(numDel1, nnz(del1_rates>0)), ...
                         'Weights', del1_rates, 'Replace', false);
                     populationMatrix(mutIDs, 1) = populationMatrix(mutIDs, 1) - deltaTrait;
-                    % Round and clamp
-                    populationMatrix(mutIDs, 1) = min(-deltaTrait * round(-populationMatrix(mutIDs,1)/deltaTrait), 0);
                 end
 
                 %% --- Module 2 mutations ---
@@ -146,7 +145,7 @@ function [resultModularCM] = simulateModularCM(simParams)
                 ben2_rates  = mu2 * max(-x2col, 0) * invD;
                 totalBen2   = sum(ben2_rates);
 
-                del2_rates  = mu2 * max(K2del + x2col, 0) * invD;
+                del2_rates  = mu2 * max(L2del + x2col, 0) * invD;
                 totalDel2   = sum(del2_rates);
 
                 % Beneficial mutations on module 2
@@ -155,7 +154,6 @@ function [resultModularCM] = simulateModularCM(simParams)
                     mutIDs = datasample(1:popSize, min(numBen2, nnz(ben2_rates>0)), ...
                         'Weights', ben2_rates, 'Replace', false);
                     populationMatrix(mutIDs, 2) = populationMatrix(mutIDs, 2) + deltaTrait;
-                    populationMatrix(mutIDs, 2) = min(-deltaTrait * round(-populationMatrix(mutIDs,2)/deltaTrait), 0);
                 end
 
                 % Deleterious mutations on module 2
@@ -164,7 +162,6 @@ function [resultModularCM] = simulateModularCM(simParams)
                     mutIDs = datasample(1:popSize, min(numDel2, nnz(del2_rates>0)), ...
                         'Weights', del2_rates, 'Replace', false);
                     populationMatrix(mutIDs, 2) = populationMatrix(mutIDs, 2) - deltaTrait;
-                    populationMatrix(mutIDs, 2) = min(-deltaTrait * round(-populationMatrix(mutIDs,2)/deltaTrait), 0);
                 end
 
                 %% Recompute fitness after all mutations
@@ -187,9 +184,6 @@ function [resultModularCM] = simulateModularCM(simParams)
                         temp = recMatrix(1:numPairs, 2);
                         recMatrix(1:numPairs, 2)       = recMatrix(numPairs+1:end, 2);
                         recMatrix(numPairs+1:end, 2)   = temp;
-
-                        % Round and clamp x2 after recombination
-                        recMatrix(:, 2) = min(-deltaTrait * round(-recMatrix(:,2)/deltaTrait), 0);
 
                         % Recompute fitness
                         recFitness = -((recMatrix(:,1)./ellipseParamsSlice(1)).^2 + ...

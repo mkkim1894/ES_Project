@@ -188,14 +188,22 @@ Run_supplementaryFigures('reproduce', 4)  % Figure S4 only
 | Parameter | Symbol | Default | Description |
 |-----------|--------|---------|-------------|
 | `popSize` | $N$ | $10^4$ | Population size |
-| `mutationRate` | $U$ | $10^{-7}$ (SSWM), $2×10^{-4}$ (CM) | Genome-wide mutation rate |
+| `mutationRate` | $U$ | $U = U_\mathrm{ref} \times (L/K)$ | Genome-wide mutation rate, scaled to keep the per-locus rate $\mu = U_\mathrm{ref}/(2K)$ fixed as $L$ changes. $U_\mathrm{ref} = 10^{-7}$ (SSWM), $2\times10^{-4}$ (CM) |
 | `deltaTrait` | $\delta$ | 0.1 | Mutational step size |
 | `landscapeStdDev` | $\sigma$ | 2 | Fitness landscape width |
-| `ellipseRatio` | a1/a2 | $\sqrt2$ | Selection anisotropy |
-| `geneticTargetSize` | [K1, K2] | [10, 10] | Loci per module, equivalent to $L_1, L_2$ in the manuscript |
+| `ellipseRatio` | $a_1/a_2$ | $\sqrt{2}$ | Selection anisotropy |
+| `geneticTargetSize` | $[L_1, L_2]$ | $[200, 200]$ | Number of loci per module; controls the deleterious mutation supply (upper boundary = $L\delta$) |
+| `K` | — | 10 | Reference locus count at which $U_\mathrm{ref}$ was originally calibrated; defines the fixed per-locus rate $\mu = U_\mathrm{ref}/(2K) = 5\times10^{-9}$ (SSWM), $10^{-5}$ (CM) |
 | `recombinationRate` | $\rho$ | 0 or 1 | Recombination rate |
 
 Parameters are set in each `Run_*.m` script and passed to simulations via `initializeSimParams`.
+
+### Implementation Notes
+
+- **Beneficial mutation threshold**: all SSWM simulations use $s > 0$ as the threshold for a mutation to be considered beneficial, consistently across all four GPFM models.
+- **Lattice initialization**: in the modular and discordant models, initial phenotypes (or latent states $y$) are snapped to the nearest multiple of $\delta$ and clamped to $\leq 0$ at initialization, reflecting the discrete binary locus structure. All subsequent mutations shift trait values by exactly $\pm\delta$, preserving the lattice structure throughout.
+- **Per-locus mutation rate**: for the pleiotropic, modular, and discordant models, $\mu = U/(2L)$ is held fixed at $5\times10^{-9}$ (SSWM) and $10^{-5}$ (CM) regardless of $L$, by scaling $U = U_\mathrm{ref} \times (L/K)$. For the pleiotropic model, $L$ refers to the per-module locus count with total loci $= 2L = 400$. The nested FGM uses a continuous Gaussian mutation framework and is parameterized directly by $U$.
+- **Output filenames** encode key simulation parameters including locus count as `L{value}` (e.g., `ModularFGM_SSWM_N1e+04_M2e-06_d0.10_eR1.41_s2.00_L200-200.mat`).
 
 ---
 
