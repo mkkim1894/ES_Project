@@ -36,7 +36,7 @@ function [resultPleiotropicSSWM] = simulatePleiotropicSSWM(simParams, genomePara
     resultPleiotropicSSWM.fixedMutationCounts = zeros(length(simParams.initialAngles), simParams.numIteration);
     resultPleiotropicSSWM.terminationStatus = zeros(length(simParams.initialAngles), simParams.numIteration);
 
-    allInitialPhenotypes = simParams.initialPhenotypes;
+    allInitialPhenotypes = genomeParams.currentPhenotypes;
     popSize = simParams.popSize;
     mutationRate = simParams.mutationRate;
     deltaTrait = simParams.deltaTrait;

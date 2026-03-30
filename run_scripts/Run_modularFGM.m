@@ -123,8 +123,6 @@ function Run_modularFGM(mode)
                                     'geneticTargetSize', C.geneticTargetSize, ...
                                     'mutationRate', C.mutationRateFast, ...
                                     'recombinationRate', 1);
-    initialParameters = freezeParam(simParams);
-    simParams.populationMatrices = preRunSimulation(initialParameters, simParams, C.preRunSteps, 'rngSeed', 1);
     resultModularCM = simulateModularCM(simParams);
     ave = computeAverageTrajectory(C.numTimeStamp, simParams, resultModularCM.resultTable);
     fprintf('  CM Sexual completed in %.2f s\n', toc);

@@ -1,4 +1,4 @@
-function [analyticalTrajectories] = predictPleiotropicSSWM(simParams, averageTrajectory)
+function [analyticalTrajectories] = predictPleiotropicSSWM(simParams, averageTrajectory, genomeParams)
 % predictPleiotropicSSWM - Compute analytical predictions for pleiotropic FGM.
 %
 % Description:
@@ -11,6 +11,7 @@ function [analyticalTrajectories] = predictPleiotropicSSWM(simParams, averageTra
 % Inputs:
 %   simParams         - Structure containing simulation parameters
 %   averageTrajectory - Structure containing averaged simulation trajectories
+%   genomeParams      - Structure containing genome initialization data
 %
 % Outputs:
 %   analyticalTrajectories - Cell array of predicted [x1, x2] trajectories
@@ -26,7 +27,7 @@ function [analyticalTrajectories] = predictPleiotropicSSWM(simParams, averageTra
 
     analyticalTrajectories = cell(1);
     initialAngles = simParams.initialAngles;
-    initialPhenotypes = simParams.initialPhenotypes;
+    initialPhenotypes = genomeParams.currentPhenotypes;
 
     for i_pos = 1:length(initialAngles)
         % Extract initial phenotypic coordinates

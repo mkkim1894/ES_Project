@@ -34,13 +34,13 @@ function Run_pleiotropicFGM(mode)
     % Per-locus mutation rate mu = U_ref / (2*K), independent of L:
     %   SSWM: U_ref = 1e-7 (at K=10), mu = 1e-7 / (2*10) = 5e-9
     %   CM:   U_ref = 2e-4 (at K=10), mu = 2e-4 / (2*10) = 1e-5
-    % U is scaled as U = U_ref * (2*L/K) to keep mu fixed as L changes.
+    % U is scaled as U = U_ref * (L/K) to keep mu fixed as L changes.
 
     testCfg.numIteration      = 8;
     testCfg.numTimeStamp      = 20;
     testCfg.initialAngles     = [atan2(1,6.4), atan2(1,0.2)];
-    testCfg.mutationRateSlow  = 1e-7 * (2*L / K);
-    testCfg.mutationRateFast  = 2e-4 * (2*L / K);
+    testCfg.mutationRateSlow  = 1e-7 * (L / K);
+    testCfg.mutationRateFast  = 2e-4 * (L / K);
     testCfg.L_SSWM            = 2*L;
     testCfg.L_CM              = 2*L;
     testCfg.popSize           = 10^4;
@@ -52,8 +52,8 @@ function Run_pleiotropicFGM(mode)
     reproduceCfg.numTimeStamp      = 20;
     reproduceCfg.initialAngles     = [atan2(1,6.4), atan2(1,3.2), atan2(1,1.6), ...
                                 atan2(1,0.8), atan2(1,0.4), atan2(1,0.2)];
-    reproduceCfg.mutationRateSlow  = 1e-7 * (2*L / K);
-    reproduceCfg.mutationRateFast  = 2e-4 * (2*L / K);
+    reproduceCfg.mutationRateSlow  = 1e-7 * (L / K);
+    reproduceCfg.mutationRateFast  = 2e-4 * (L / K);
     reproduceCfg.L_SSWM            = 2*L;
     reproduceCfg.L_CM              = 2*L;
     reproduceCfg.popSize           = 10^4;
@@ -90,7 +90,7 @@ function Run_pleiotropicFGM(mode)
     outDir = ensureDir(resultsRoot, 'SSWM');
     fname = fullfile(outDir, buildFilename('PleiotropicFGM', 'SSWM', simParams, C.L_SSWM));
     save(fname, 'simParams', 'genomeParams', 'resultPleiotropicSSWM', 'ave');
-    analyticalTrajectories = predictPleiotropicSSWM(simParams, ave);
+    analyticalTrajectories = predictPleiotropicSSWM(simParams, ave, genomeParams);
     save(fname, 'analyticalTrajectories', '-append');
 
     % ==================== CM asexual (L = 400) =======================
@@ -116,7 +116,7 @@ function Run_pleiotropicFGM(mode)
     save(fname, 'simParams', 'genomeParams', 'resultPleiotropicCM', 'ave');
     % SSWM prediction shown in all panels (A-C) to illustrate little
     % variations across the regimes
-    analyticalTrajectories = predictPleiotropicSSWM(simParams, ave); 
+    analyticalTrajectories = predictPleiotropicSSWM(simParams, ave, genomeParams);
     save(fname, 'analyticalTrajectories', '-append');
 
     % ==================== CM sexual (L = 400, r=1) ===================
@@ -143,7 +143,7 @@ function Run_pleiotropicFGM(mode)
     save(fname, 'simParams', 'genomeParams', 'resultPleiotropicCM', 'ave');
     % SSWM prediction shown in all panels (A-C) to illustrate little
     % variations across the regimes
-    analyticalTrajectories = predictPleiotropicSSWM(simParams, ave);
+    analyticalTrajectories = predictPleiotropicSSWM(simParams, ave, genomeParams);
     save(fname, 'analyticalTrajectories', '-append');
 
     fprintf('\nAll done. Mode: %s\n', mode);

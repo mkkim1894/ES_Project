@@ -71,9 +71,7 @@ function [resultModularSSWM] = simulateModularSSWM(simParams)
 
         parfor i_repeat = 1:simParams.numIteration
             % Discretize initial phenotype to delta-lattice and clamp to <= 0
-            initialPhenotypeSlice(1) = -deltaTrait * round(-initialPhenotypes(1) / deltaTrait);
-            initialPhenotypeSlice(2) = -deltaTrait * round(-initialPhenotypes(2) / deltaTrait);
-            initialPhenotypeSlice = min(initialPhenotypeSlice, 0);
+            initialPhenotypeSlice = min(-deltaTrait * round(-initialPhenotypes(1:2) / deltaTrait), 0);
             ellipseParamsSlice    = ellipseParams;
 
             Fitness    = -((initialPhenotypeSlice(1)/ellipseParamsSlice(1))^2 + ...

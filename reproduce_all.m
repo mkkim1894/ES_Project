@@ -17,12 +17,12 @@ addpath(genpath('.'));
 fprintf('=== Running simulations ===\n');
 
 Run_pleiotropicFGM
-Run_modularFGM
-Run_discordantFGM
-Run_nestedFGM
-Run_nestedFGM('reproduce', {}, [10, 20]) % asymmetric dimensionality
-Run_supplementary
-Run_ThresholdDAnalysis
+%Run_modularFGM
+%Run_discordantFGM
+%Run_nestedFGM
+%Run_nestedFGM('reproduce', {}, [10, 20]) % asymmetric dimensionality
+%Run_supplementary
+%Run_ThresholdDAnalysis
 
 %% Figures
 fprintf('=== Generating figures ===\n');
