@@ -25,8 +25,8 @@ function makeFigure5_Generations(figureType, simParamsRef, varargin)
 %   preserved across figures.
 %
 % Outputs:
-%   Saves Figure_NestedFGM_Generations.eps to results/Figures/
-%   (or outputFile.eps if outputFile override is specified)
+%   Saves Figure_NestedFGM_Generations.pdf to results/Figures/
+%   (or outputFile.pdf if outputFile override is specified)
 
 % ----------------------------- Parse inputs -----------------------------
 mode = 'auto';
@@ -120,8 +120,8 @@ else
     saveFile = [output_file '_Generations'];
 end
 
-print(fullfile(figDir, [saveFile '.eps']), '-depsc', '-r300');
-fprintf('Saved %s\n', fullfile(figDir, [saveFile '.eps']));
+print(fullfile(figDir, [saveFile '.pdf']), '-dpdf', '-vector');
+fprintf('Saved %s\n', fullfile(figDir, [saveFile '.pdf']));
 end
 
 % ======================================================================

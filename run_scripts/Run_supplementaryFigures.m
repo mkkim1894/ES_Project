@@ -18,7 +18,7 @@
 %   S6 — Asymmetric nested FGM dynamics (n1=10, n2=20)
 %
 % Outputs:
-%   .eps files in ./results_supplementary/Figures/
+%   .pdf files in ./results_supplementary/Figures/
 %
 % Reference:
 %   Kim, M., Ardell, S. M., & Kryazhimskiy, S. (2025).
@@ -121,12 +121,12 @@ function Run_supplementaryFigures(mode, figNum)
         [~, newest] = max([asymFiles.datenum]);
         tmp = load(fullfile(asymFiles(newest).folder, asymFiles(newest).name), 'simParams');
         % Use outputFile override to save under a distinct name,
-        % avoiding any collision with the symmetric Figure_NestedFGM_Generations.eps
+        % avoiding any collision with the symmetric Figure_NestedFGM_Generations.pdf
         makeFigure5_Generations('NestedFGM', tmp.simParams, tern(isTest, 'test', 'full'), ...
             'outputFile', 'Figure_NestedFGM_Asymmetric');
         % Move from results/Figures/ to supplementary figures directory
-        src = fullfile(resultsDir, 'Figures', 'Figure_NestedFGM_Asymmetric.eps');
-        dst = fullfile(figuresDir, 'FigureS_NestedFGM_Asymmetric.eps');
+        src = fullfile(resultsDir, 'Figures', 'Figure_NestedFGM_Asymmetric.pdf');
+        dst = fullfile(figuresDir, 'FigureS_NestedFGM_Asymmetric.pdf');
         if isfile(src)
             movefile(src, dst);
             fprintf('Moved to %s\n', dst);
@@ -136,7 +136,7 @@ function Run_supplementaryFigures(mode, figNum)
     end
 
     fprintf('\nDone. Figures saved to %s\n', figuresDir);
-    figFiles = dir(fullfile(figuresDir, '*.eps'));
+    figFiles = dir(fullfile(figuresDir, '*.pdf'));
     for i = 1:length(figFiles)
         fprintf('  - %s\n', figFiles(i).name);
     end

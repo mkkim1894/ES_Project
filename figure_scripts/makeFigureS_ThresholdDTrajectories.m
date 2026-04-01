@@ -17,7 +17,7 @@ function makeFigureS_ThresholdDTrajectories(simDataFile, theoryDataFile, varargi
 %       'outputDir' - Directory for output figure (default: current)
 %
 % Outputs:
-%   Generates EPS file: FigureS_ThresholdDTrajectories.eps
+%   Generates pdf file: FigureS_ThresholdDTrajectories.pdf
 %       2x2 panel figure showing:
 %       - Same simulation trajectories (blue) in all panels
 %       - Different theoretical predictions (yellow) for D = 10000, 1000, 100, 10
@@ -182,8 +182,8 @@ set(gcf, 'PaperUnits', 'centimeters');
 set(gcf, 'PaperPosition', [0 0 figureWidth figureHeight]);
 set(gcf, 'PaperSize', [figureWidth figureHeight]);
 
-outputFile = fullfile(outputDir, 'FigureS_ThresholdDTrajectories.eps');
-print(outputFile, '-depsc', '-r300');
+outputFile = fullfile(outputDir, 'FigureS_ThresholdDTrajectories.pdf');
+print(outputFile, '-dpdf', '-vector');
 fprintf('Figure saved to %s\n', outputFile);
 
 close(gcf);

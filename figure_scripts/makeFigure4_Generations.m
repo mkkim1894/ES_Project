@@ -23,7 +23,7 @@ function makeFigure4_Generations(figureType, simParamsRef, varargin)
 %   preserved across figures.
 %
 % Outputs:
-%   Saves Figure_DiscordantFGM_Generations.eps to results/Figures/
+%   Saves Figure_DiscordantFGM_Generations.pdf to results/Figures/
 
 % ----------------------------- Parse inputs -----------------------------
 mode = 'auto';
@@ -108,8 +108,8 @@ if ~isfolder(figDir)
     mkdir(figDir);
 end
 
-print(fullfile(figDir, [output_file '_Generations.eps']), '-depsc', '-r300');
-fprintf('Saved %s\n', fullfile(figDir, [output_file '_Generations.eps']));
+print(fullfile(figDir, [output_file '_Generations.pdf']), '-dpdf', '-vector');
+fprintf('Saved %s\n', fullfile(figDir, [output_file '_Generations.pdf']));
 end
 
 % ======================================================================

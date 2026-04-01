@@ -16,7 +16,7 @@ function makeFigure3_Generations(figureType, simParamsRef, varargin)
 %                       Set to 0 to disable. Default: 0 (no cutoff).
 %
 % Outputs:
-%   Saves Figure_ModularFGM_Generations.eps to results/Figures/
+%   Saves Figure_ModularFGM_Generations.pdf to results/Figures/
 
 % ----------------------------- Parse inputs -----------------------------
 mode = 'auto';
@@ -105,8 +105,8 @@ end
 
 figDir = fullfile(resultsRoot,'Figures');
 if ~isfolder(figDir), mkdir(figDir); end
-print(fullfile(figDir, [output_file '_Generations.eps']), '-depsc', '-r300');
-fprintf('Saved %s\n', fullfile(figDir, [output_file '_Generations.eps']));
+print(fullfile(figDir, [output_file '_Generations.pdf']), '-dpdf', '-vector');
+fprintf('Saved %s\n', fullfile(figDir, [output_file '_Generations.pdf']));
 end
 
 % ======================================================================

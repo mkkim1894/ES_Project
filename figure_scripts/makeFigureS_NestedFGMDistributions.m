@@ -15,7 +15,7 @@ function makeFigureS_NestedFGMDistributions(dataFile, varargin)
 %       'angleIdx'  - Which initial angle to show (default: 1)
 %
 % Outputs:
-%   Saves FigureS_NestedFGMDistributions.eps to outputDir
+%   Saves FigureS_NestedFGMDistributions.pdf to outputDir
 %
 % Reference:
 %   Kim, M., Ardell, S. M., & Kryazhimskiy, S. (2025).
@@ -205,8 +205,8 @@ end
 
 %% Save
 set(gcf,'Color','w');
-outFile = fullfile(outputDir, 'FigureS_NestedFGMDistributions.eps');
-print(outFile, '-depsc', '-r300');
+outFile = fullfile(outputDir, 'FigureS_NestedFGMDistributions.pdf');
+print(outFile, '-dpdf', '-vector');
 fprintf('Saved to %s\n', outFile);
 close(gcf);
 

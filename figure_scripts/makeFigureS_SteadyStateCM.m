@@ -12,9 +12,9 @@ function makeFigureS_SteadyStateCM(dataFile, varargin)
 %       'figureSet'  - Which figures to generate: 'all', 'main', or figure number (default: 'all')
 %
 % Outputs:
-%   Generates EPS files:
-%       FigureS_CM_Main.eps         - Main validation (6 subplots, 3x2 layout)
-%       FigureS_CM_Weights.eps      - Weighted prediction comparisons (3 panels)
+%   Generates pdf files:
+%       FigureS_CM_Main.pdf         - Main validation (6 subplots, 3x2 layout)
+%       FigureS_CM_Weights.pdf      - Weighted prediction comparisons (3 panels)
 %
 % Example:
 %   makeFigureS_SteadyStateCM('results/SteadyStateCM_N_10000.mat');
@@ -224,7 +224,7 @@ fprintf('Figures saved to %s\n', outputDir);
         addSubplotLabel('F', subplotPositions(6,:));
         pbaspect([1 1 1]);
 
-        saveFigure(fullfile(outputDir, 'FigureS_CM_Main.eps'), figureWidth, figureHeight*1.2);
+        saveFigure(fullfile(outputDir, 'FigureS_CM_Main.pdf'), figureWidth, figureHeight*1.2);
     end
 
 
@@ -252,7 +252,7 @@ fprintf('Figures saved to %s\n', outputDir);
         subplot('Position', subplotPositions(3, :));
         plotWeightedComparison('s', shortened_vector, Parameter, WFsim, Prediction_s_weights, color_palette, map_index_to_color, alpha_val, 'C', subplotPositions(3,:));
 
-        saveFigure(fullfile(outputDir, 'FigureS_CM_Weights.eps'), 14, 10);
+        saveFigure(fullfile(outputDir, 'FigureS_CM_Weights.pdf'), 14, 10);
     end
 
 end
@@ -420,7 +420,7 @@ function plotWeightedComparison(weightType, indices, Parameter, WFsim, Predictio
 end
 
 function saveFigure(filename, ~, ~)
-    print(filename, '-depsc', '-r300');
+    print(filename, '-dpdf', '-vector');
 end
 
 function addSubplotLabel(label, pos)

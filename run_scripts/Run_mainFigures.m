@@ -15,7 +15,7 @@
 %   Figure 5 — NestedFGM (moduleDimension [10,10])
 %
 % Outputs:
-%   .eps files in ./results/Figures/ (or ./results_test/Figures/)
+%   .pdf files in ./results/Figures/ (or ./results_test/Figures/)
 %
 % Reference:
 %   Kim, M., Ardell, S. M., & Kryazhimskiy, S. (2025).
@@ -89,7 +89,7 @@ function Run_mainFigures(mode, figures)
     end
 
     figMode          = tern(isTest, 'test', 'full');
-    proximityCutoff  = C.deltaTrait;
+    proximityCutoff  = C.deltaTrait*0.9;
     nestedM          = sqrt(2 * C.deltaTrait);
 
     % ----------------------------------------------------------------
