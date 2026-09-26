@@ -7,18 +7,19 @@
 %   Run_supplementaryFigures                   % all figures, reproduce mode
 %   Run_supplementaryFigures('test')           % all figures, test mode
 %   Run_supplementaryFigures('reproduce', 1)   % Figure S1 only
-%   Run_supplementaryFigures('reproduce', 6)   % Figure S6 only
+%   Run_supplementaryFigures('reproduce', 5)   % Figure S5 only
 %
 % Figure assignments:
-%   S1 — Steady-state CM main validation
-%   S2 — CM parameter ranges
-%   S3 — CM weight comparisons
-%   S4 — Threshold D sensitivity
-%   S5 — Nested FGM mutation-effect distributions
-%   S6 — Asymmetric nested FGM dynamics (n1=10, n2=20)
+%   S1 — Steady-state CM, validation of the ratio prediction
+%   S2 — Steady-state CM, weights of the module-improving mutations
+%   S3 — Sensitivity to the threshold D
+%   S4 — Nested FGM, distributions of mutational effects
+%   S5 — Nested FGM, asymmetric dimensionality (n1=10, n2=20)
+%
+%   The ten-module figures are not produced here; see Run_nModule.
 %
 % Outputs:
-%   .pdf files in ./results_supplementary/Figures/
+%   .pdf files in ./results/Supplementary/Figures/
 %
 % Reference:
 %   Kim, M., Ardell, S. M., & Kryazhimskiy, S. (2025).
@@ -45,7 +46,7 @@ function Run_supplementaryFigures(mode, figNum)
     addpath(fullfile(projRoot, 'utils'));
     addpath(fullfile(projRoot, 'figure_scripts'));
 
-    suppDir    = fullfile(projRoot, 'results_supplementary');
+    suppDir    = fullfile(projRoot, tern(isTest, 'results_test', 'results'), 'Supplementary');
     figuresDir = fullfile(suppDir, 'Figures');
     resultsDir = fullfile(projRoot, tern(isTest, 'results_test', 'results'));
 
@@ -72,21 +73,14 @@ function Run_supplementaryFigures(mode, figNum)
 
     % --- S2: CM parameter ranges ---
     if runAll || figNum == 2
-        fprintf('Generating Figure S2 (CM Parameters)...\n');
+        fprintf('Generating Figure S2 (CM Weights)...\n');
         requireFile(steadyFile, 'Run_supplementary');
         makeFigureS_SteadyStateCM(steadyFile, 'outputDir', figuresDir, 'figureSet', 2);
     end
 
-    % --- S3: CM weight comparisons ---
+    % --- S3: Sensitivity to the threshold D ---
     if runAll || figNum == 3
-        fprintf('Generating Figure S3 (CM Weights)...\n');
-        requireFile(steadyFile, 'Run_supplementary');
-        makeFigureS_SteadyStateCM(steadyFile, 'outputDir', figuresDir, 'figureSet', 3);
-    end
-
-    % --- S4: Threshold D sensitivity ---
-    if runAll || figNum == 4
-        fprintf('Generating Figure S4 (Threshold D)...\n');
+        fprintf('Generating Figure S3 (Threshold D)...\n');
         requireFile(threshFile, 'Run_ThresholdDAnalysis');
         if isempty(cmFiles)
             error('No ModularFGM_CM_Asexual_*.mat found in %s.\nRun Run_modularFGM first.', ...
@@ -97,9 +91,9 @@ function Run_supplementaryFigures(mode, figNum)
         makeFigureS_ThresholdDTrajectories(cmFile, threshFile, 'outputDir', figuresDir);
     end
 
-    % --- S5: Nested FGM mutation-effect distributions ---
-    if runAll || figNum == 5
-        fprintf('Generating Figure S5 (Nested FGM distributions)...\n');
+    % --- S4: Nested FGM mutation-effect distributions ---
+    if runAll || figNum == 4
+        fprintf('Generating Figure S4 (Nested FGM distributions)...\n');
         if isempty(nestedFiles)
             error('No NestedFGM_SSWM_*.mat found in %s.\nRun Run_nestedFGM first.', ...
                 fullfile(resultsDir, 'Generalization', 'NestedFGM', 'SSWM'));
@@ -109,9 +103,9 @@ function Run_supplementaryFigures(mode, figNum)
         makeFigureS_NestedFGMDistributions(nestedFile, 'outputDir', figuresDir);
     end
 
-    % --- S6: Asymmetric nested FGM dynamics (n1=10, n2=20) ---
-    if runAll || figNum == 6
-        fprintf('Generating Figure S6 (Asymmetric Nested FGM)...\n');
+    % --- S5: Asymmetric nested FGM dynamics (n1=10, n2=20) ---
+    if runAll || figNum == 5
+        fprintf('Generating Figure S5 (Asymmetric Nested FGM)...\n');
         asymDir = fullfile(resultsDir, 'Generalization', 'NestedFGM', 'SSWM');
         asymFiles = dir(fullfile(asymDir, 'NestedFGM_SSWM_*n10-20*.mat'));
         if isempty(asymFiles)
@@ -122,8 +116,11 @@ function Run_supplementaryFigures(mode, figNum)
         tmp = load(fullfile(asymFiles(newest).folder, asymFiles(newest).name), 'simParams');
         % Use outputFile override to save under a distinct name,
         % avoiding any collision with the symmetric Figure_NestedFGM_Generations.pdf
+        % showEffectPanels=false keeps the original 2x3 layout (A-F) here: the
+        % A/B/C row added to main Figure 5 is regime-agnostic and redundant in
+        % this supplementary panel.
         makeFigure5_Generations('NestedFGM', tmp.simParams, tern(isTest, 'test', 'full'), ...
-            'outputFile', 'Figure_NestedFGM_Asymmetric');
+            'outputFile', 'Figure_NestedFGM_Asymmetric', 'showEffectPanels', false);
         % Move from results/Figures/ to supplementary figures directory
         src = fullfile(resultsDir, 'Figures', 'Figure_NestedFGM_Asymmetric.pdf');
         dst = fullfile(figuresDir, 'FigureS_NestedFGM_Asymmetric.pdf');

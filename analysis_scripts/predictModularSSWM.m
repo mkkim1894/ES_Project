@@ -30,10 +30,18 @@ function [analyticalTrajectories] = predictModularSSWM(simParams, averageTraject
         x1_final = averageTrajectory.averageTimeStamp{1,i_pos}(1,end);
         x2_final = averageTrajectory.averageTimeStamp{1,i_pos}(2,end);
 
-        alpha1 = 4*simParams.popSize*simParams.mutationRate*simParams.deltaTrait/...
-            (simParams.geneticTargetSize(1)*simParams.ellipseParams(1)^2);
-        alpha2 = 4*simParams.popSize*simParams.mutationRate*simParams.deltaTrait/...
-            (simParams.geneticTargetSize(2)*simParams.ellipseParams(2)^2);
+        % alpha_i = 4*N*mu*delta/a_i^2 (manuscript units), with mu = U/(2*L_i)
+        % and a_i = sqrt(2)*sigma*ellipseParams(i). Substituting both gives
+        %     alpha_i = N*U*delta / (L_i * sigma^2 * ellipseParams(i)^2).
+        % The previous expression omitted sigma^2 and carried a factor 4, i.e.
+        % it was larger by sigma^4 = 16 at sigma = 2. That did not affect the
+        % trait-space curve, whose shape depends only on alpha_2/alpha_1 and
+        % whose extent is calibrated from the simulated endpoint below. It does
+        % matter for anything plotted against absolute generations.
+        alpha1 = simParams.popSize*simParams.mutationRate*simParams.deltaTrait/...
+            (simParams.geneticTargetSize(1)*simParams.landscapeStdDev^2*simParams.ellipseParams(1)^2);
+        alpha2 = simParams.popSize*simParams.mutationRate*simParams.deltaTrait/...
+            (simParams.geneticTargetSize(2)*simParams.landscapeStdDev^2*simParams.ellipseParams(2)^2);
 
         x10 = WT(1);
         x20 = WT(2);

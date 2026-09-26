@@ -5,6 +5,7 @@
 %   Run_pleiotropicFGM              % reproduce mode (default)
 %   Run_pleiotropicFGM('test')      % fast sanity run
 %   Run_pleiotropicFGM('reproduce') % full paper-scale run
+%   Run_pleiotropicFGM('reproduce', 'sampled')  % with the corrected initialization
 %
 % Outputs:
 %   .mat files in ./results/... (or ./results_test/...)
@@ -13,9 +14,36 @@
 %   Kim, M., Ardell, S. M., & Kryazhimskiy, S. (2025).
 %   "Module-Selection Balance in the Evolution of Modular Organisms."
 
-function Run_pleiotropicFGM(mode)
+function Run_pleiotropicFGM(mode, initMode)
     if nargin < 1, mode = 'reproduce'; end
+    if nargin < 2, initMode = 'greedy'; end
     isTest = strcmpi(mode, 'test');
+
+    % Initialization of the starting genotypes.
+    %   'greedy'  - initializeGenomeTheta, the original single forward pass.
+    %   'sampled' - initializeGenomeSampled: a random 0 -> 1 walk sets the
+    %               number of 1s, then swaps land the phenotype on target and
+    %               randomise which loci carry them.
+    switch lower(initMode)
+        case 'greedy',  initFcn = @(LL, sp, sd) initializeGenomeTheta(LL, sp, sd);
+        case 'sampled', initFcn = @(LL, sp, sd) initializeGenomeSampled(LL, sp, sd);
+        case 'maxent',  initFcn = @(LL, sp, sd) initializeGenomeMaxEnt(LL, sp, sd);
+        otherwise
+            error('Run_pleiotropicFGM:BadInit', ...
+                  'Second argument must be ''greedy'', ''sampled'' or ''maxent''.');
+    end
+    % NOTE ON FILENAMES. 'greedy' and 'sampled' both write files named
+    % PleiotropicFGM_*, so a sampled run overwrites a greedy one in place --
+    % which is why the March greedy results had to be moved aside by hand.
+    % They are now under _relegated/from_results_tree/. 'maxent' is tagged so that it
+    % cannot do the same. Giving 'sampled' its own tag would be the tidier fix,
+    % but it would orphan the existing September files, so it is left alone.
+    if strcmpi(initMode, 'maxent')
+        modelTag = 'PleiotropicFGM-maxentinit';
+    else
+        modelTag = 'PleiotropicFGM';
+    end
+    fprintf('Initialization: %s\n', lower(initMode));
 
     %% Environment setup
     thisDir  = fileparts(mfilename('fullpath'));
@@ -80,7 +108,7 @@ function Run_pleiotropicFGM(mode)
                                 'landscapeStdDev', C.landscapeStdDev, ...
                                 'mutationRate', C.mutationRateSlow, ...
                                 'omitParams', {'geneticTargetSize'});
-    genomeParams = initializeGenomeTheta(C.L_SSWM, simParams, 1);
+    genomeParams = initFcn(C.L_SSWM, simParams, 1);
 
     resultPleiotropicSSWM = simulatePleiotropicSSWM(simParams, genomeParams);
     ave = computeAverageTrajectory(C.numTimeStamp, simParams, resultPleiotropicSSWM.resultTable);
@@ -88,7 +116,7 @@ function Run_pleiotropicFGM(mode)
     reportTermination('SSWM', resultPleiotropicSSWM.terminationStatus);
 
     outDir = ensureDir(resultsRoot, 'SSWM');
-    fname = fullfile(outDir, buildFilename('PleiotropicFGM', 'SSWM', simParams, C.L_SSWM));
+    fname = fullfile(outDir, buildFilename(modelTag, 'SSWM', simParams, C.L_SSWM));
     save(fname, 'simParams', 'genomeParams', 'resultPleiotropicSSWM', 'ave');
     analyticalTrajectories = predictPleiotropicSSWM(simParams, ave, genomeParams);
     save(fname, 'analyticalTrajectories', '-append');
@@ -104,7 +132,7 @@ function Run_pleiotropicFGM(mode)
                                     'landscapeStdDev', C.landscapeStdDev, ...
                                     'mutationRate', C.mutationRateFast, ...
                                     'omitParams', {'geneticTargetSize'});
-    genomeParams = initializeGenomeTheta(C.L_CM, simParams, 1);
+    genomeParams = initFcn(C.L_CM, simParams, 1);
 
     resultPleiotropicCM = simulatePleiotropicCM(simParams, genomeParams);
     ave = computeAverageTrajectory(C.numTimeStamp, simParams, resultPleiotropicCM.resultTable);
@@ -112,7 +140,7 @@ function Run_pleiotropicFGM(mode)
     reportTermination('CM Asexual', resultPleiotropicCM.terminationStatus);
 
     outDir = ensureDir(resultsRoot, 'CM_Asexual');
-    fname = fullfile(outDir, buildFilename('PleiotropicFGM', 'CM_Asexual', simParams, C.L_CM));
+    fname = fullfile(outDir, buildFilename(modelTag, 'CM_Asexual', simParams, C.L_CM));
     save(fname, 'simParams', 'genomeParams', 'resultPleiotropicCM', 'ave');
     % SSWM prediction shown in all panels (A-C) to illustrate little
     % variations across the regimes
@@ -131,7 +159,7 @@ function Run_pleiotropicFGM(mode)
                                     'mutationRate', C.mutationRateFast, ...
                                     'recombinationRate', 1, ...
                                     'omitParams', {'geneticTargetSize'});
-    genomeParams = initializeGenomeTheta(C.L_CM, simParams, 1);
+    genomeParams = initFcn(C.L_CM, simParams, 1);
 
     resultPleiotropicCM = simulatePleiotropicCM(simParams, genomeParams);
     ave = computeAverageTrajectory(C.numTimeStamp, simParams, resultPleiotropicCM.resultTable);
@@ -139,7 +167,7 @@ function Run_pleiotropicFGM(mode)
     reportTermination('CM Sexual', resultPleiotropicCM.terminationStatus);
 
     outDir = ensureDir(resultsRoot, 'CM_Sexual');
-    fname = fullfile(outDir, buildFilename('PleiotropicFGM', 'CM_Sexual', simParams, C.L_CM));
+    fname = fullfile(outDir, buildFilename(modelTag, 'CM_Sexual', simParams, C.L_CM));
     save(fname, 'simParams', 'genomeParams', 'resultPleiotropicCM', 'ave');
     % SSWM prediction shown in all panels (A-C) to illustrate little
     % variations across the regimes

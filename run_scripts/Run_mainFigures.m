@@ -2,6 +2,14 @@
 % Generates main figures (2-5) from existing simulation data.
 % No simulations are run.
 %
+% Figures 2-4 are now organized by
+% REGIME rather than by MODEL. Each fixes one evolutionary regime and
+% shows Pleiotropic GPFM vs. Modular GPFM side by side (2x2), so the
+% cross-model contrast — the paper's main point — is visible within a
+% single figure instead of requiring the reader to flip between figures.
+% Figure 5 (Nested FGM) is unchanged (still model-organized, 2x3;
+% generalization check, not part of the core regime contrast).
+%
 % Usage:
 %   Run_mainFigures                        % all figures, reproduce mode
 %   Run_mainFigures('test')                % all figures, test mode
@@ -9,10 +17,10 @@
 %   Run_mainFigures('reproduce', 2)        % figure 2 only
 %
 % Figure assignments:
-%   Figure 2 — PleiotropicFGM
-%   Figure 3 — ModularFGM
-%   Figure 4 — DiscordantFGM
-%   Figure 5 — NestedFGM (moduleDimension [10,10])
+%   Figure 2 — SSWM                (regime-organized: Pleiotropic | Modular)
+%   Figure 3 — CM, linked           (regime-organized: Pleiotropic | Modular)
+%   Figure 4 — CM, unlinked         (regime-organized: Pleiotropic | Modular)
+%   Figure 5 — NestedFGM (moduleDimension [10,10])  [unchanged, model-organized]
 %
 % Outputs:
 %   .pdf files in ./results/Figures/ (or ./results_test/Figures/)
@@ -64,7 +72,6 @@ function Run_mainFigures(mode, figures)
             C.deltaTrait        = 0.1;
             C.landscapeStdDev   = 2;
             C.geneticTargetSize = [L, L];
-            C.discordantAngles  = [pi/16, 7*pi/16];
             C.moduleDimension   = [10, 10];
             C.L_CM              = 2*L;
 
@@ -80,7 +87,6 @@ function Run_mainFigures(mode, figures)
             C.deltaTrait        = 0.1;
             C.landscapeStdDev   = 2;
             C.geneticTargetSize = [L, L];
-            C.discordantAngles  = [pi/16, 7*pi/16];
             C.moduleDimension   = [10, 10];
             C.L_CM              = 2*L;
 
@@ -89,96 +95,80 @@ function Run_mainFigures(mode, figures)
     end
 
     figMode          = tern(isTest, 'test', 'full');
-    proximityCutoff  = C.deltaTrait*0.9;
+    % Methods: "we exclude data points where either x_i exceeds -delta".
+    % The cutoff is therefore delta exactly, not a fraction of it, and the
+    % same value is used in every figure that plots log R.
+    proximityCutoff  = C.deltaTrait;
     nestedM          = sqrt(2 * C.deltaTrait);
 
     % ----------------------------------------------------------------
-    % Discordant admissible angles (needed for figure 4 file matching)
+    % simParams used for file-matching (Pleiotropic / Modular).
+    %
+    % These are REFERENCE structs only: they never feed a simulation, they just
+    % tell locateFile which .mat to load. The mutation rate therefore has to
+    % match the rate the data were actually generated at, which differs by
+    % regime (slow in SSWM, fast in the concurrent-mutations regimes). Building
+    % one shared struct at the fast rate used to leave the SSWM lookup unable to
+    % discriminate between files, so it fell through to an alphabetical guess.
     % ----------------------------------------------------------------
-    masterAngles    = C.initialAngles;
-    thetaDiscordant = C.discordantAngles;
+    makePleiotropicRef = @(U) initializeSimParams( ...
+        'numIteration',      C.numIteration, ...
+        'initialAngles',     C.initialAngles, ...
+        'popSize',           C.popSize, ...
+        'ellipseRatio',      C.ellipseRatio, ...
+        'deltaTrait',        C.deltaTrait, ...
+        'landscapeStdDev',   C.landscapeStdDev, ...
+        'mutationRate',      U, ...
+        'recombinationRate', 1, ...
+        'omitParams',        {'geneticTargetSize'});
 
-    M_disc = [cos(thetaDiscordant(1)), cos(thetaDiscordant(2));
-              sin(thetaDiscordant(1)), sin(thetaDiscordant(2))];
+    makeModularRef = @(U) initializeSimParams( ...
+        'numIteration',      C.numIteration, ...
+        'initialAngles',     C.initialAngles, ...
+        'popSize',           C.popSize, ...
+        'ellipseRatio',      C.ellipseRatio, ...
+        'deltaTrait',        C.deltaTrait, ...
+        'landscapeStdDev',   C.landscapeStdDev, ...
+        'geneticTargetSize', C.geneticTargetSize, ...
+        'mutationRate',      U);
 
-    ellipseParams_disc = tern(C.ellipseRatio >= 1, [1, 1/C.ellipseRatio], [C.ellipseRatio, 1]);
-
-    allInitialPhenotypes = findInitialPhenotypes(masterAngles, ellipseParams_disc, 0.25, C.landscapeStdDev);
-
-    discordantMask = false(1, numel(masterAngles));
-    for ii = 1:numel(masterAngles)
-        y0 = M_disc \ allInitialPhenotypes(ii, :)';
-        discordantMask(ii) = all(y0 <= -C.deltaTrait);
-    end
-    discordantInitialAngles = masterAngles(discordantMask);
-    discordantAngleIdx      = find(discordantMask);
-
-    fprintf('DiscordantFGM: %d / %d initial angles retained.\n', ...
-        numel(discordantInitialAngles), numel(masterAngles));
+    pleiotropicSlowRef = makePleiotropicRef(C.mutationRateSlow);
+    modularSlowRef     = makeModularRef(C.mutationRateSlow);
+    pleiotropicFastRef = makePleiotropicRef(C.mutationRateFast);
+    modularFastRef     = makeModularRef(C.mutationRateFast);
 
     % ----------------------------------------------------------------
-    % Figure 2 — PleiotropicFGM
+    % Figure 2 — SSWM (Pleiotropic | Modular)
     % ----------------------------------------------------------------
     if ismember(2, figures)
-        fprintf('\nFigure 2 (PleiotropicFGM)...\n'); tic;
-        pleiotropicFigParams = initializeSimParams( ...
-            'numIteration',      C.numIteration, ...
-            'initialAngles',     C.initialAngles, ...
-            'popSize',           C.popSize, ...
-            'ellipseRatio',      C.ellipseRatio, ...
-            'deltaTrait',        C.deltaTrait, ...
-            'landscapeStdDev',   C.landscapeStdDev, ...
-            'mutationRate',      C.mutationRateFast, ...
-            'recombinationRate', 1, ...
-            'omitParams',        {'geneticTargetSize'});
-        makeFigure2_Generations('PleiotropicFGM', pleiotropicFigParams, figMode, ...
-                                'proximityCutoff', proximityCutoff);
+        fprintf('\nFigure 2 (SSWM, Pleiotropic vs. Modular)...\n'); tic;
+        makeRegimeFigure_Generations('SSWM', pleiotropicSlowRef, modularSlowRef, figMode, ...
+                                     'proximityCutoff', proximityCutoff, 'outputFile', 'Figure2_SSWM');
         fprintf('  Done in %.2f s\n', toc);
     end
 
     % ----------------------------------------------------------------
-    % Figure 3 — ModularFGM
+    % Figure 3 — CM, linked chromosomes (Pleiotropic | Modular)
     % ----------------------------------------------------------------
     if ismember(3, figures)
-        fprintf('\nFigure 3 (ModularFGM)...\n'); tic;
-        modularFigParams = initializeSimParams( ...
-            'numIteration',      C.numIteration, ...
-            'initialAngles',     C.initialAngles, ...
-            'popSize',           C.popSize, ...
-            'ellipseRatio',      C.ellipseRatio, ...
-            'deltaTrait',        C.deltaTrait, ...
-            'landscapeStdDev',   C.landscapeStdDev, ...
-            'geneticTargetSize', C.geneticTargetSize, ...
-            'mutationRate',      C.mutationRateFast);
-        makeFigure3_Generations('ModularFGM', modularFigParams, figMode, ...
-                                'proximityCutoff', proximityCutoff);
+        fprintf('\nFigure 3 (CM linked, Pleiotropic vs. Modular)...\n'); tic;
+        makeRegimeFigure_Generations('CM_Asexual', pleiotropicFastRef, modularFastRef, figMode, ...
+                                     'proximityCutoff', proximityCutoff, 'outputFile', 'Figure3_CMLinked');
         fprintf('  Done in %.2f s\n', toc);
     end
 
     % ----------------------------------------------------------------
-    % Figure 4 — DiscordantFGM
+    % Figure 4 — CM, unlinked chromosomes (Pleiotropic | Modular)
     % ----------------------------------------------------------------
     if ismember(4, figures)
-        fprintf('\nFigure 4 (DiscordantFGM)...\n'); tic;
-        discordantFigParams = initializeSimParams( ...
-            'numIteration',      C.numIteration, ...
-            'initialAngles',     discordantInitialAngles, ...
-            'popSize',           C.popSize, ...
-            'ellipseRatio',      C.ellipseRatio, ...
-            'deltaTrait',        C.deltaTrait, ...
-            'landscapeStdDev',   C.landscapeStdDev, ...
-            'geneticTargetSize', C.geneticTargetSize, ...
-            'mutationRate',      C.mutationRateFast, ...
-            'discordantAngles',  C.discordantAngles);
-        discordantFigParams.masterInitialAngles = masterAngles;
-        discordantFigParams.initialAngleIdx     = discordantAngleIdx;
-        makeFigure4_Generations('DiscordantFGM', discordantFigParams, figMode, ...
-                                'proximityCutoff', proximityCutoff);
+        fprintf('\nFigure 4 (CM unlinked, Pleiotropic vs. Modular)...\n'); tic;
+        makeRegimeFigure_Generations('CM_Sexual', pleiotropicFastRef, modularFastRef, figMode, ...
+                                     'proximityCutoff', proximityCutoff, 'outputFile', 'Figure4_CMUnlinked');
         fprintf('  Done in %.2f s\n', toc);
     end
 
     % ----------------------------------------------------------------
-    % Figure 5 — NestedFGM
+    % Figure 5 — NestedFGM (unchanged: model-organized, 2x3)
     % ----------------------------------------------------------------
     if ismember(5, figures)
         fprintf('\nFigure 5 (NestedFGM)...\n'); tic;

@@ -1,4 +1,4 @@
-function [analyticalTrajectories] = predictModularCM(simParams, varargin)
+function [analyticalTrajectories, timeVectors] = predictModularCM(simParams, varargin)
 % predictModularCM - Compute analytical trajectory predictions for modular CM regime.
 %
 % Description:
@@ -37,6 +37,9 @@ function [analyticalTrajectories] = predictModularCM(simParams, varargin)
     nPos = size(initialPhenotypes, 1);
 
     analyticalTrajectories = cell(nPos, 1);
+    % Time vector for each trajectory. Previously discarded; needed to plot the
+    % module performance ratio against generations (predictLogRatioTrajectory).
+    timeVectors            = cell(nPos, 1);
     finalFitnessThreshold = 0.99;
 
     for i_pos = 1:nPos
@@ -45,10 +48,11 @@ function [analyticalTrajectories] = predictModularCM(simParams, varargin)
         tspan = [0 10000];
         options = odeset('Events', @(t,x) eventFunction(t, x, simParams, finalFitnessThreshold, D, tol));
 
-        [~, X] = ode45(@(t, x) computeAdaptationRate(t, x, simParams, D, tol), ...
+        [T, X] = ode45(@(t, x) computeAdaptationRate(t, x, simParams, D, tol), ...
                        tspan, WT, options);
 
         analyticalTrajectories{i_pos, 1} = X;
+        timeVectors{i_pos, 1}            = T;
     end
 end
 

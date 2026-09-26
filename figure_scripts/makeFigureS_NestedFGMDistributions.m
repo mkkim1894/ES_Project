@@ -101,7 +101,7 @@ plotPDFContour(sp, lvl, [0.7 0.7 0.7]);
 plot(x1t, x2t, '-', 'Color', '#2776A8', 'LineWidth', 1.0);
 
 % Starting marker
-scatter(x1t(1), x2t(1), 30, ...
+scatter(x1t(1), x2t(1), 70, ...
     'MarkerEdgeColor','#2776A8','MarkerFaceColor','#2776A8');
 
 % Time-stamp beads - sampled at 5/50/95% of arc length along trajectory
@@ -113,23 +113,23 @@ stampIdx = max(1, min(T, stampIdx));
 
 for k = 1:3
     si = stampIdx(k);
-    scatter(x1t(si), x2t(si), 60, 'o', ...
+    scatter(x1t(si), x2t(si), 140, 'o', ...
         'MarkerEdgeColor', beadColor, ...
         'MarkerFaceColor', beadColor);
     % label centered below the bead
     text(x1t(si), x2t(si) - 0.12, stampLabels{k}, ...
-        'FontSize', 7, 'Color', beadColor, 'FontName', 'Helvetica', ...
+        'FontSize', 9, 'Color', beadColor, 'FontName', 'Helvetica', ...
         'HorizontalAlignment', 'center');
 end
 
 customizeAxes(1.2.*[-2.8, 0.05], 1.2.*[-2.1875, 0.05]);
 pbaspect([1 1 1]);
-text(-2.5,   0.22,  'Module 1 Performance', 'FontName','Helvetica','FontSize',10);
-text( 0.25, -0.3,  'Module 2 Performance', 'FontName','Helvetica','FontSize',10,'Rotation',270);
-text( 0.08, 0.12,'0',                    'FontName','Helvetica','FontSize',10);
+text(-2.5,   0.22,  'Module 1 Performance', 'FontName','Helvetica','FontSize',12);
+text( 0.25, -0.3,  'Module 2 Performance', 'FontName','Helvetica','FontSize',12,'Rotation',270);
+text( 0.08, 0.12,'0',                    'FontName','Helvetica','FontSize',12);
 
 annotation('textbox',[posA(1)-0.04, posB{1}(2)+posB{1}(4)+0.05, 0.03, 0.03], ...
-    'String','A','FontSize',12,'FontWeight','bold','EdgeColor','none');
+    'String','A','FontSize',14,'FontWeight','bold','EdgeColor','none');
 
 %% ---- Panels B: mutation-effect distributions ------------------------------
 delta_x = linspace(-0.6, 0.4, 400);
@@ -173,24 +173,24 @@ for k = 1:3
     xline(0, ':', 'Color', [0.5 0.5 0.5], 'LineWidth', 0.8, 'HandleVisibility', 'off');
 
     if k == 3
-        xlabel('$\Delta x_i$', 'Interpreter','latex','FontSize',10);
+        xlabel('$\Delta x_i$', 'Interpreter','latex','FontSize',12);
     else
         set(gca, 'XTickLabel', {});
     end
     if k == 2
-        ylabel('Probability density', 'FontSize', 9, 'FontName', 'Helvetica');
+        ylabel('Probability density', 'FontSize', 11, 'FontName', 'Helvetica');
     end
 
     if k == 1
-        legend('Interpreter','latex','FontSize',7,'Location','northwest','Box','off');
+        legend('Interpreter','latex','FontSize',9,'Location','northwest','Box','off');
     end
 
-    th = title(stampLabels{k}, 'FontName','Helvetica','FontSize',9,'FontWeight','normal');
+    th = title(stampLabels{k}, 'FontName','Helvetica','FontSize',11,'FontWeight','normal');
     th.Units = 'normalized';
     th.Position(2) = th.Position(2) - 0.08;
 
     box off;
-    set(gca, 'FontSize', 8, 'LineWidth', 0.8);
+    set(gca, 'FontSize', 10, 'LineWidth', 0.8);
     xlim([-0.6, 0.4]);
     ylim([0, ymax]);
 
@@ -199,7 +199,7 @@ for k = 1:3
         annotation('textbox', ...
             [posB{k}(1)-0.04, posB{k}(2)+posB{k}(4)+0.05, 0.03, 0.03], ...
             'String', 'B', ...
-            'FontSize',12,'FontWeight','bold','EdgeColor','none');
+            'FontSize',14,'FontWeight','bold','EdgeColor','none');
     end
 end
 
@@ -250,6 +250,6 @@ function customizeAxes(xl, yl)
     ax.XTick = [-2, -1];
     ax.YTick = [-2, -1];
     ax.TickLength = [0.015, 0.015];
-    ax.FontSize = 8;
+    ax.FontSize = 10;
     ax.TickLabelInterpreter = 'latex';
 end

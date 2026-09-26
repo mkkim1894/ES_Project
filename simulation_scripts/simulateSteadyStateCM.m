@@ -184,8 +184,8 @@ parfor i = 1:numel(v1)
             Rec_F2_1(j, t) = sum(pop(:, 1) .* pop(:, 3) * s2 ) / sum(pop(:,1));
 
             if t == generations
-                Rec_v1(j) = (Rec_F1_2(j, generations) - Rec_F1_2(j, t_burnin)) / (generations-t_burnin+1);
-                Rec_v2(j) = (Rec_F2_1(j, generations) - Rec_F2_1(j, t_burnin)) / (generations-t_burnin+1);
+                Rec_v1(j) = (Rec_F1_2(j, generations) - Rec_F1_2(j, t_burnin)) / (generations-t_burnin);
+                Rec_v2(j) = (Rec_F2_1(j, generations) - Rec_F2_1(j, t_burnin)) / (generations-t_burnin);
             end
         end
     end
@@ -255,7 +255,7 @@ parfor i = 1:numel(v_prime_param_all)
         Rec_F1(1, t) = sum(pop(:, 1) .* pop(:, 2) * s1 ) /sum(pop(:,1));
 
         if t == generations
-            Rec_v1 = (Rec_F1(1, generations) - Rec_F1(1, t_burnin)) / (generations-t_burnin+1);
+            Rec_v1 = (Rec_F1(1, generations) - Rec_F1(1, t_burnin)) / (generations-t_burnin);
         end
     end
 

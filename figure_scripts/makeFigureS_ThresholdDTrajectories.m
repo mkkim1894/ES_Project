@@ -87,7 +87,7 @@ end
 subplot_labels = {'A', 'B', 'C', 'D'};
 markers = {'d', '^', 'v', '>', '<', 'o'};
 figureWidth = 17.8;
-figureHeight = 15;
+figureHeight = 16.5;
 
 % Colors matching Figure 3
 theory_color = '#EDB120';  % Yellow for theory
@@ -105,12 +105,14 @@ figure('Units', 'centimeters', 'Position', [1, 1, figureWidth, figureHeight]);
 %% Compute fitness contour levels
 [~, inflection_pdf_level] = defineGaussianPDF(simParams);
 
-%% Subplot positions (2x2 grid) — leave room at top for D titles
+%% Subplot positions (2x2 grid). The gap above each panel carries two things:
+%% the "Module 1 Performance" axis title, which the main figures place above the
+%% panel rather than inside it, and the D title above that.
 subplot_positions = {
-    [0.08, 0.54, 0.38, 0.38];   % A: top-left  (D=10000)
-    [0.56, 0.54, 0.38, 0.38];   % B: top-right (D=1000)
-    [0.08, 0.08, 0.38, 0.38];   % C: bottom-left  (D=100)
-    [0.56, 0.08, 0.38, 0.38];   % D: bottom-right (D=10)
+    [0.08, 0.545, 0.38, 0.325];   % A: top-left     (D=10000)
+    [0.56, 0.545, 0.38, 0.325];   % B: top-right    (D=1000)
+    [0.08, 0.055, 0.38, 0.325];   % C: bottom-left  (D=100)
+    [0.56, 0.055, 0.38, 0.325];   % D: bottom-right (D=10)
 };
 
 %% Generate subplots
@@ -118,8 +120,7 @@ for i = 1:numPanels
     subplot('Position', subplot_positions{i});
     
     % Subplot label
-    annotation('textbox', [subplot_positions{i}(1)-0.06, subplot_positions{i}(2)+subplot_positions{i}(4)-0.02, 0.03, 0.03], ...
-               'String', subplot_labels{i}, 'FontSize', 14, 'FontWeight', 'bold', 'EdgeColor', 'none');
+    addSubplotLabel(subplot_labels{i}, subplot_positions{i});
 
     % Plot fitness contours
     plotPDFContour(simParams, inflection_pdf_level, [0.7, 0.7, 0.7]);
@@ -137,7 +138,7 @@ for i = 1:numPanels
     for j = 1:length(avgTraj.averageTimeStamp)
         ts = avgTraj.averageTimeStamp{j};
         plot(ts(1,:), ts(2,:), '-', 'Color', sim_color, 'LineWidth', 1);
-        scatter(ts(1,1), ts(2,1), 30, 'Marker', markers{j}, ...
+        scatter(ts(1,1), ts(2,1), 70, 'Marker', markers{j}, ...
             'MarkerEdgeColor', sim_color, 'MarkerFaceColor', sim_color);
     end
 
@@ -158,29 +159,37 @@ for i = 1:numPanels
     ax.YTick = [-2, -1];
     ax.TickLength = [0.015, 0.015];
     ax.TickDir = 'in';
-    ax.FontSize = 8;
+    ax.FontSize = 10;
     ax.TickLabelInterpreter = 'latex';
 
-    % Origin label only
-    text(0.08, 0.12, '0', 'FontName', 'Helvetica', 'FontSize', 10);
+    % Axis titles, placed as in Figures 2-5: the axes are drawn at the origin,
+    % which is the top right corner of the panel, so these cannot be xlabel and
+    % ylabel and are positioned by hand at the same data coordinates.
+    text(-3, 0.4, 'Module 1 Performance', 'FontName', 'Helvetica', 'FontSize', 12);
+    text(0.4, -0.1, 'Module 2 Performance', 'FontName', 'Helvetica', 'FontSize', 12, ...
+         'Rotation', 270);
+    text(0.08, 0.12, '0', 'FontName', 'Helvetica', 'FontSize', 12);
 
     % Threshold D as panel title 
     titleX = subplot_positions{i}(1) + subplot_positions{i}(3)/2;
-    titleY = subplot_positions{i}(2) + subplot_positions{i}(4) + 0.015;
+    titleY = subplot_positions{i}(2) + subplot_positions{i}(4) + 0.075;
     annotation('textbox', [titleX - 0.12, titleY, 0.24, 0.04], ...
         'String', sprintf('$D = %d$', D_values(i)), ...
         'Interpreter', 'latex', ...
-        'FontSize', 12, ...
+        'FontSize', 14, ...
         'HorizontalAlignment', 'center', ...
         'EdgeColor', 'none', ...
         'FitBoxToText', 'off');
 end
 
 %% Save figure
+% "Module 2 Performance" is drawn to the right of the axis and overhangs the
+% figure box; cropping the page to the box exactly would cut it off.
+mrg = [0.5, 0.5, 0.6, 0.3];   % left, bottom, right, top, cm
 set(gcf, 'Color', 'w');
 set(gcf, 'PaperUnits', 'centimeters');
-set(gcf, 'PaperPosition', [0 0 figureWidth figureHeight]);
-set(gcf, 'PaperSize', [figureWidth figureHeight]);
+set(gcf, 'PaperPosition', [mrg(1), mrg(2), figureWidth, figureHeight]);
+set(gcf, 'PaperSize', [figureWidth + mrg(1) + mrg(3), figureHeight + mrg(2) + mrg(4)]);
 
 outputFile = fullfile(outputDir, 'FigureS_ThresholdDTrajectories.pdf');
 print(outputFile, '-dpdf', '-vector');
@@ -191,6 +200,14 @@ close(gcf);
 end
 
 %% Helper functions
+
+function addSubplotLabel(label, pos)
+% Matches the panel labelling of Figures 2-5: 14 pt bold, above and to the left
+% of the panel rather than inside it.
+    annotation('textbox', [pos(1)-0.065, pos(2)+pos(4)+0.012, 0.045, 0.045], ...
+        'String', label, 'FontSize', 14, 'FontWeight', 'bold', 'EdgeColor', 'none');
+end
+
 
 function [f, inflection_pdf_level] = defineGaussianPDF(simParams)
     syms x1 x2
@@ -216,7 +233,7 @@ function plotReferenceLines(simParams, customcolor)
     
     % x1 = x2 diagonal (gray)
     plot(x1, x1, '-', 'Color', customcolor, 'LineWidth', 1);
-    text(-2.3, -2.4, '$\mathbf{x_1 = x_2}$', 'Interpreter', 'latex', 'FontSize', 10, 'Color', customcolor);
+    text(-2.3, -2.4, '$\mathbf{x_1 = x_2}$', 'Interpreter', 'latex', 'FontSize', 12, 'Color', customcolor);
     
     % s1 = s2 line (orange) - module-selection balance
     if isfield(simParams, 'geneticTargetSize')
@@ -224,6 +241,6 @@ function plotReferenceLines(simParams, customcolor)
                 (simParams.ellipseParams(1)^2 * simParams.geneticTargetSize(1));
         x2_MSL = R_bar * x1;
         plot(x1, x2_MSL, '-', 'Color', [0.8, 0.3, 0], 'LineWidth', 2);
-        text(-3.3, -1.8, '$\mathbf{s_1 = s_2}$', 'Interpreter', 'latex', 'FontSize', 10, 'Color', [0.8, 0.3, 0]);
+        text(-3.3, -1.8, '$\mathbf{s_1 = s_2}$', 'Interpreter', 'latex', 'FontSize', 12, 'Color', [0.8, 0.3, 0]);
     end
 end

@@ -11,15 +11,17 @@ This repository contains MATLAB code and a Python notebook for the simulations a
 
 > Kim, M., Ardell, S. M., & Kryazhimskiy, S. (2025). Module-Selection Balance in the Evolution of Modular Organisms.
 
-Four genotype-phenotype-fitness map (GPFM) models are implemented — Pleiotropic, Modular, Discordant-module, and Nested FGM — each simulated under the Strong Selection Weak Mutation (SSWM) and Concurrent Mutations (CM) regimes. A separate Python notebook reproduces the LTEE metagenomic analysis (Figure 6).
+Genotype-phenotype-fitness map (GPFM) models are implemented in the directories below — pleiotropic, modular, discordant-module and nested FGM in the main tree, with a constant-supply model, a restricted mutational cone and a ten-module version added as extensions. Each is simulated under the successive mutations (SSWM) and concurrent mutations (CM) regimes. A Python script reproduces the LTEE metagenomic analysis (Figure 7).
 
 ---
 
 ## Data Availability
 
-Pre-computed simulation output files (`.mat`) will be deposited on Zenodo upon acceptance. To regenerate all figures directly from these files without rerunning simulations, download the archive, extract the contents into the project root so that `results/` and `results_supplementary/` are present, then run:
+Pre-computed simulation output files (`.mat`) will be deposited on Zenodo upon acceptance. To regenerate all figures directly from these files without rerunning simulations, download the archive, extract the contents into the project root so that `results/` and `results/Supplementary/` are present, then run:
 
 ```matlab
+cd /path/to/project
+addpath(genpath(pwd));          % the Run_ scripts live in run_scripts/
 Run_mainFigures('reproduce')
 Run_supplementaryFigures('reproduce')
 ```
@@ -32,59 +34,48 @@ To reproduce the simulations from scratch (~10 hours on 10 cores), see [Reproduc
 
 ```
 project_root/
-├── run_scripts/
-│   ├── Run_pleiotropicFGM.m          # Pleiotropic FGM simulations (Figure 2)
-│   ├── Run_modularFGM.m              # Modular FGM simulations (Figure 3)
-│   ├── Run_discordantFGM.m           # Discordant-module FGM simulations (Figure 4)
-│   ├── Run_nestedFGM.m               # Nested FGM simulations (Figure 5, S5, S6)
-│   ├── Run_supplementary.m           # Steady-state CM validation (Figures S1–S3)
-│   ├── Run_ThresholdDAnalysis.m      # Threshold D sensitivity analysis (Figure S4)
-│   ├── Run_mainFigures.m             # Generate main figures 2–5
-│   └── Run_supplementaryFigures.m    # Generate supplementary figures S1–S6
-├── simulation_scripts/
-│   ├── simulatePleiotropicSSWM.m
-│   ├── simulatePleiotropicCM.m
-│   ├── simulateModularSSWM.m
-│   ├── simulateModularCM.m
-│   ├── simulateDiscordantSSWM.m
-│   ├── simulateDiscordantCM.m
-│   ├── simulateNestedSSWM.m
-│   ├── simulateNestedCM.m
-│   └── simulateSteadyStateCM.m
-├── analysis_scripts/
-│   ├── computeAverageTrajectory.m
-│   ├── predictModularSSWM.m
-│   ├── predictModularCM.m
-│   ├── predictFullRecomb.m
-│   └── predictPleiotropicSSWM.m
-├── utils/
-│   ├── initializeSimParams.m
-│   ├── findInitialPhenotypes.m
-│   ├── freezeParam.m
-│   ├── preRunSimulation.m
-│   └── initializeGenomeTheta.m
-├── figure_scripts/
-│   ├── makeFigure2_Generations.m
-│   ├── makeFigure3_Generations.m
-│   ├── makeFigure4_Generations.m
-│   ├── makeFigure5_Generations.m
-│   ├── makeFigureS_SteadyStateCM.m
-│   ├── makeFigureS_ThresholdDTrajectories.m
-│   └── makeFigureS_NestedFGMDistributions.m
-├── LTEE_analysis/
-│   └── notebooks/
-│       └── ltee_analysis.ipynb       # LTEE metagenomic analysis (Figure 6)
-├── reproduce_all.m               # Reproduce all simulations and figures (~10 hours, 10 cores)
-├── test_all.m                    # Pipeline verification (~15 minutes)
 ├── README.md
-└── LICENSE
+├── LICENSE
+├── reproduce_all.m        # The one entry point: all simulations and figures
+│
+├── run_scripts/           # One Run_ script per model or figure set
+├── simulation_scripts/    # Wright-Fisher and Gillespie simulators
+├── analysis_scripts/      # Trajectory averaging, analytical predictions, diagnostics
+├── figure_scripts/        # Figure producers
+├── utils/                 # Parameters, genome initialization, helpers
+├── docs/                  # One note per model, plus the figure manifest
+├── LTEE_analysis/         # Figures 7 and S6 (Python, with its own data and results)
+│
+├── results/               # All MATLAB output
+│   ├── SSWM/  CM_Asexual/  CM_Sexual/     # pleiotropic and modular
+│   ├── ConstantSupply/                     # constant-supply control
+│   ├── RestrictedTheta_sampledinit/        # restricted cone, walk-and-swap init
+│   ├── RestrictedTheta_maxentinit/         # restricted cone, maximum-entropy init
+│   ├── Generalization/NestedFGM/
+│   ├── nModule/                            # ten-module simulations
+│   ├── Supplementary/                      # parameter-grid data and its figures
+│   ├── Figures/
+│   └── main_figures/                       # the manuscript set, collected
+│
+└── _relegated/            # Retained but inactive; see _relegated/MANIFEST.md
 ```
+
+`reproduce_all.m` sets up its own path. Every other entry point is a function
+inside one of these directories, so a bare `cd` to the project root is not
+enough - run `addpath(genpath(pwd));` once per MATLAB session first.
+
+Every model is laid out the same way: its runner in `run_scripts/`, its
+simulators in `simulation_scripts/`, its predictions and diagnostics in
+`analysis_scripts/`, its figures in `figure_scripts/`, and its output in a
+subdirectory of `results/`. `docs/` holds one note per model explaining what it
+is and why it exists; `docs/figures.md` maps manuscript figure numbers onto the
+scripts that produce them.
 
 ---
 
 ## Requirements
 
-### MATLAB (Figures 2–5, S1–S6)
+### MATLAB (Figures 2-6, S1-S5, S7-S8)
 - MATLAB R2025a or later
 
 | Toolbox | Purpose |
@@ -93,19 +84,19 @@ project_root/
 | Symbolic Math | `syms`, `solve` in `findInitialPhenotypes` |
 | Parallel Computing | `parfor` acceleration |
 
-### Python (Figure 6)
+### Python (Figures 7 and S6)
 - Python 3.8 or later
 - Dependencies: `numpy`, `pandas`, `matplotlib`
 - LTEE metagenomic data (see below)
 
 ---
 
-## LTEE Data Setup (Figure 6)
+## LTEE Data Setup (Figure 7)
 
-The LTEE analysis notebook requires data from Good et al. (2017), which is not included in this repository.
+The LTEE analysis requires data from Good et al. (2017), which is not included in this repository.
 
 1. Download the repository ZIP from https://github.com/benjaminhgood/LTEE-metagenomic
-2. Unzip and place the resulting `LTEE-metagenomic-master` folder at `LTEE_analysis/LTEE-metagenomic-master/` (one level above the notebook).
+2. Unzip and place the resulting `LTEE-metagenomic-master` folder inside `LTEE_analysis/`.
 
 The expected directory layout is:
 
@@ -113,22 +104,36 @@ The expected directory layout is:
 LTEE_analysis/
 ├── LTEE-metagenomic-master/   ← place downloaded data here
 │   └── data_files/
-└── notebooks/
-    └── ltee_analysis.ipynb
+├── ltee_analysis.py
+└── results/
 ```
 
-Alternatively, update `LTEE_REPO_PATH` in the Setup cell of the notebook to point to your local copy.
+Then:
+
+```
+cd LTEE_analysis
+python ltee_analysis.py --download    # first run, fetches the data files
+python ltee_analysis.py               # subsequent runs
+```
+
+Pass `--data-dir` to point at a copy held elsewhere.
 
 ---
 
 ## Reproducing Paper Results
 
-To verify the pipeline before a full run (~15 minutes, reduced parameter sets):
+To verify the pipeline before a full run, at test scale, every simulation and
+every figure script:
 
 ```matlab
 cd /path/to/project
 test_all
 ```
+
+`test_all` mirrors `reproduce_all` stage for stage at reduced parameter sets and
+writes everything to `results_test/`, so nothing in `results/` is touched. It
+reports each stage's status, wall-clock time, and whether that stage actually
+wrote a fresh output; one failure does not stop the rest. Minutes, not hours.
 
 To reproduce all simulations and figures (~10 hours on 10 cores):
 
@@ -137,7 +142,7 @@ cd /path/to/project
 reproduce_all
 ```
 
-Output files are written to `results/`, `results_supplementary/`, and their respective `Figures/` subdirectories.
+Output files are written to `results/`, `results/Supplementary/`, and their respective `Figures/` subdirectories.
 
 ---
 
@@ -146,53 +151,72 @@ Output files are written to `results/`, `results_supplementary/`, and their resp
 Each driver script accepts `'reproduce'` (default) or `'test'` as the mode argument.
 
 ```matlab
-Run_pleiotropicFGM('reproduce')           % Figure 2
-Run_modularFGM('reproduce')               % Figure 3
-Run_discordantFGM('reproduce')            % Figure 4
-Run_nestedFGM('reproduce')               % Figure 5, S5  — symmetric [n1=10, n2=10]
-Run_nestedFGM('reproduce', {}, [10, 20]) % Figure S6     — asymmetric [n1=10, n2=20]
-Run_supplementary('reproduce')           % Figures S1–S3
-Run_ThresholdDAnalysis('reproduce')      % Figure S4
+cd /path/to/project
+addpath(genpath(pwd));
+Run_pleiotropicFGM('reproduce', 'sampled')   % pleiotropic arm of Figures 2-4
+Run_modularFGM('reproduce')                  % modular arm of Figures 2-4
+Run_nestedFGM('reproduce')                   % Figure 5, S4  - symmetric [n1=10, n2=10]
+Run_nestedFGM('reproduce', {}, [10, 20])     % Figure S5     - asymmetric [n1=10, n2=20]
+Run_modularConstantSupply                    % Figure 6
+Run_pleiotropicRestrictedTheta('init','maxent')  % restricted cone
+Run_supplementary('reproduce')               % Figures S1, S2
+Run_ThresholdDAnalysis('reproduce')          % Figure S3
+Run_nModule                                  % Figures S7, S8
 ```
 
 After simulations complete, generate figures with:
 
 ```matlab
-Run_mainFigures('reproduce')           % Figures 2–5
-Run_supplementaryFigures('reproduce')  % Figures S1–S6
+addpath(genpath(pwd));                 % if not already done
+Run_allMainFigures                     % Figures 2-6 and the restricted cone
+Run_supplementaryFigures('reproduce')  % Figures S1-S5
 ```
 
 Individual figures can be regenerated without rerunning the others:
 
 ```matlab
 Run_mainFigures('reproduce', 3)           % Figure 3 only
-Run_supplementaryFigures('reproduce', 4)  % Figure S4 only
+Run_supplementaryFigures('reproduce', 3)  % Figure S3 only
 ```
 
 ---
 
 ## Figure Index
 
-### Main Figures
+`docs/figures.md` holds the full mapping, including output paths.
 
-| Figure | Description | Source |
-|--------|-------------|--------|
-| 2 | Evolutionary dynamics on the pleiotropic GPFM | `Run_pleiotropicFGM` |
-| 3 | Evolutionary dynamics on the modular GPFM | `Run_modularFGM` |
-| 4 | Evolutionary dynamics on the discordant-module GPFM | `Run_discordantFGM` |
-| 5 | Evolutionary dynamics on the nested FGM | `Run_nestedFGM` |
-| 6 | LTEE metagenomic analysis | `ltee_analysis.ipynb` |
+### Main figures
 
-### Supplementary Figures
+| Figure | Description | Produced by |
+|--------|-------------|-------------|
+| 1 | Schematic of the two genotype-phenotype-fitness maps | drawn by hand |
+| 2 | Successive mutations, pleiotropic and modular | `Run_mainFigures` |
+| 3 | Concurrent mutations, linked chromosomes | `Run_mainFigures` |
+| 4 | Concurrent mutations, unlinked chromosomes | `Run_mainFigures` |
+| 5 | Nested FGM | `Run_mainFigures` |
+| 6 | Constant supply of module-improving mutations | `Run_modularConstantSupply` |
+| 7 | LTEE metagenomic analysis | `ltee_analysis.py` |
 
-| Figure | Description | Simulation required |
-|--------|-------------|---------------------|
-| S1 | Steady-state CM rate-of-adaptation: main validation | `Run_supplementary` |
-| S2 | Steady-state CM: parameter ranges | `Run_supplementary` |
-| S3 | Steady-state CM: weighting scheme comparisons | `Run_supplementary` |
-| S4 | Threshold D sensitivity (D = 10, 100, 1000, 10000) | `Run_ThresholdDAnalysis` |
-| S5 | Nested FGM mutation-effect distributions | `Run_nestedFGM` |
-| S6 | Asymmetric nested FGM dynamics (n1=10, n2=20) | `Run_nestedFGM('reproduce', {}, [10,20])` |
+`Run_allMainFigures` redraws figures 2 to 6 in one call and collects them.
+The restricted-cone figure (`makeFigure_RestrictedTheta`) is produced but its
+manuscript number is not yet settled.
+
+### Supplementary figures
+
+| Figure | Description | Produced by |
+|--------|-------------|-------------|
+| S1 | Numerical validation of the two-module adaptation rates | `Run_supplementaryFigures` |
+| S2 | Accuracy of the heuristic approximation under different weights | `Run_supplementaryFigures` |
+| S3 | Threshold D sensitivity | `Run_supplementaryFigures` |
+| S4 | Nested FGM mutation-effect distributions | `Run_supplementaryFigures` |
+| S5 | Asymmetric nested FGM dynamics | `Run_supplementaryFigures` |
+| S6 | LTEE multi-hit gene sensitivity | `ltee_analysis.py` |
+| S7 | Ten functional modules | `Run_nModule` |
+| S8 | Evolutionary stalling with ten modules | `Run_nModule` |
+
+`Run_supplementary` and `makeFigureS_SteadyStateCM` produce a steady-state
+concurrent-mutations validation that the current supplement does not cite. The
+code is retained; the figures are not part of the manuscript.
 
 ---
 

@@ -10,7 +10,6 @@
 # Results directories
 results/
 results_test/
-results_supplementary/
 
 # LTEE data (download separately per README instructions)
 LTEE_analysis/LTEE-metagenomic-master/
@@ -27,3 +26,8 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# OS metadata and retained-but-inactive material
+**/.DS_Store
+_relegated/
+_to_delete/

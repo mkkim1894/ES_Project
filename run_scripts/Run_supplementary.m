@@ -7,7 +7,7 @@
 %   Run_supplementary('reproduce') % full paper-scale run
 %
 % Outputs:
-%   .mat files in ./results_supplementary/
+%   .mat files in ./results/Supplementary/
 %
 % Reference:
 %   Kim, M., Ardell, S. M., & Kryazhimskiy, S. (2025).
@@ -27,7 +27,7 @@ function Run_supplementary(mode)
     addpath(fullfile(projRoot, 'analysis_scripts'));
     addpath(fullfile(projRoot, 'utils'));
 
-    resultsDir = fullfile(projRoot, 'results_supplementary');
+    resultsDir = fullfile(projRoot, tern(isTest, 'results_test', 'results'), 'Supplementary');
     if ~isfolder(resultsDir), mkdir(resultsDir); end
 
     fprintf('\n========================================================\n');

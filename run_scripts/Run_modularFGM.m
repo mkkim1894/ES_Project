@@ -13,8 +13,9 @@
 %   Kim, M., Ardell, S. M., & Kryazhimskiy, S. (2025).
 %   "Module-Selection Balance in the Evolution of Modular Organisms."
 
-function Run_modularFGM(mode)
+function Run_modularFGM(mode, regimes)
     if nargin < 1, mode = 'reproduce'; end
+    if nargin < 2 || isempty(regimes), regimes = {'SSWM', 'CM_Asexual', 'CM_Sexual'}; end
     isTest = strcmpi(mode, 'test');
 
     %% Environment setup
@@ -68,71 +69,78 @@ function Run_modularFGM(mode)
 
     fprintf('\n=== Modular FGM (%s mode) ===\n', mode);
 
-    % SSWM
-    fprintf('Running ModularFGM SSWM...\n');
-    tic;
-    simParams = initializeSimParams('numIteration', C.numIteration, ...
-                                    'initialAngles', C.initialAngles, ...
-                                    'popSize', C.popSize, ...
-                                    'ellipseRatio', C.ellipseRatio, ...
-                                    'deltaTrait', C.deltaTrait, ...
-                                    'landscapeStdDev', C.landscapeStdDev, ...
-                                    'geneticTargetSize', C.geneticTargetSize);
-    resultModularSSWM = simulateModularSSWM(simParams);
-    ave = computeAverageTrajectory(C.numTimeStamp, simParams, resultModularSSWM.resultTable);
-    fprintf('  SSWM completed in %.2f s\n', toc);
-    reportTermination('SSWM', resultModularSSWM.terminationStatus);
+    if ismember('SSWM', regimes)
+        % SSWM
+        fprintf('Running ModularFGM SSWM...\n');
+        tic;
+        simParams = initializeSimParams('numIteration', C.numIteration, ...
+                                        'initialAngles', C.initialAngles, ...
+                                        'popSize', C.popSize, ...
+                                        'ellipseRatio', C.ellipseRatio, ...
+                                        'deltaTrait', C.deltaTrait, ...
+                                        'landscapeStdDev', C.landscapeStdDev, ...
+                                        'geneticTargetSize', C.geneticTargetSize, ...
+                                        'mutationRate', C.mutationRateSlow);
+        resultModularSSWM = simulateModularSSWM(simParams);
+        ave = computeAverageTrajectory(C.numTimeStamp, simParams, resultModularSSWM.resultTable);
+        fprintf('  SSWM completed in %.2f s\n', toc);
+        reportTermination('SSWM', resultModularSSWM.terminationStatus);
 
-    outDir = ensureDir(resultsRoot, 'SSWM');
-    fname = fullfile(outDir, buildFilename('ModularFGM', 'SSWM', simParams));
-    save(fname, 'simParams', 'resultModularSSWM', 'ave');
-    analyticalTrajectories = predictModularSSWM(discretizeInitialPhenotypes(simParams), ave);
-    save(fname, 'analyticalTrajectories', '-append');
+        outDir = ensureDir(resultsRoot, 'SSWM');
+        fname = fullfile(outDir, buildFilename('ModularFGM', 'SSWM', simParams));
+        save(fname, 'simParams', 'resultModularSSWM', 'ave');
+        analyticalTrajectories = predictModularSSWM(discretizeInitialPhenotypes(simParams), ave);
+        save(fname, 'analyticalTrajectories', '-append');
+    end
 
-    % CM asexual
-    fprintf('Running ModularFGM CM Asexual...\n');
-    tic;
-    simParams = initializeSimParams('numIteration', C.numIteration, ...
-                                    'initialAngles', C.initialAngles, ...
-                                    'popSize', C.popSize, ...
-                                    'ellipseRatio', C.ellipseRatio, ...
-                                    'deltaTrait', C.deltaTrait, ...
-                                    'landscapeStdDev', C.landscapeStdDev, ...
-                                    'geneticTargetSize', C.geneticTargetSize, ...
-                                    'mutationRate', C.mutationRateFast);
-    resultModularCM = simulateModularCM(simParams);
-    ave = computeAverageTrajectory(C.numTimeStamp, simParams, resultModularCM.resultTable);
-    fprintf('  CM Asexual completed in %.2f s\n', toc);
-    reportTermination('CM Asexual', resultModularCM.terminationStatus);
+    if ismember('CM_Asexual', regimes)
+        % CM asexual
+        fprintf('Running ModularFGM CM Asexual...\n');
+        tic;
+        simParams = initializeSimParams('numIteration', C.numIteration, ...
+                                        'initialAngles', C.initialAngles, ...
+                                        'popSize', C.popSize, ...
+                                        'ellipseRatio', C.ellipseRatio, ...
+                                        'deltaTrait', C.deltaTrait, ...
+                                        'landscapeStdDev', C.landscapeStdDev, ...
+                                        'geneticTargetSize', C.geneticTargetSize, ...
+                                        'mutationRate', C.mutationRateFast);
+        resultModularCM = simulateModularCM(simParams);
+        ave = computeAverageTrajectory(C.numTimeStamp, simParams, resultModularCM.resultTable);
+        fprintf('  CM Asexual completed in %.2f s\n', toc);
+        reportTermination('CM Asexual', resultModularCM.terminationStatus);
 
-    outDir = ensureDir(resultsRoot, 'CM_Asexual');
-    fname = fullfile(outDir, buildFilename('ModularFGM', 'CM_Asexual', simParams));
-    save(fname, 'simParams', 'resultModularCM', 'ave');
-    analyticalTrajectories = predictModularCM(discretizeInitialPhenotypes(simParams));
-    save(fname, 'analyticalTrajectories', '-append');
+        outDir = ensureDir(resultsRoot, 'CM_Asexual');
+        fname = fullfile(outDir, buildFilename('ModularFGM', 'CM_Asexual', simParams));
+        save(fname, 'simParams', 'resultModularCM', 'ave');
+        analyticalTrajectories = predictModularCM(discretizeInitialPhenotypes(simParams));
+        save(fname, 'analyticalTrajectories', '-append');
+    end
 
-    % CM sexual (full recombination)
-    fprintf('Running ModularFGM CM Sexual (full recombination)...\n');
-    tic;
-    simParams = initializeSimParams('numIteration', C.numIteration, ...
-                                    'initialAngles', C.initialAngles, ...
-                                    'popSize', C.popSize, ...
-                                    'ellipseRatio', C.ellipseRatio, ...
-                                    'deltaTrait', C.deltaTrait, ...
-                                    'landscapeStdDev', C.landscapeStdDev, ...
-                                    'geneticTargetSize', C.geneticTargetSize, ...
-                                    'mutationRate', C.mutationRateFast, ...
-                                    'recombinationRate', 1);
-    resultModularCM = simulateModularCM(simParams);
-    ave = computeAverageTrajectory(C.numTimeStamp, simParams, resultModularCM.resultTable);
-    fprintf('  CM Sexual completed in %.2f s\n', toc);
-    reportTermination('CM Sexual', resultModularCM.terminationStatus);
+    if ismember('CM_Sexual', regimes)
+        % CM sexual (full recombination)
+        fprintf('Running ModularFGM CM Sexual (full recombination)...\n');
+        tic;
+        simParams = initializeSimParams('numIteration', C.numIteration, ...
+                                        'initialAngles', C.initialAngles, ...
+                                        'popSize', C.popSize, ...
+                                        'ellipseRatio', C.ellipseRatio, ...
+                                        'deltaTrait', C.deltaTrait, ...
+                                        'landscapeStdDev', C.landscapeStdDev, ...
+                                        'geneticTargetSize', C.geneticTargetSize, ...
+                                        'mutationRate', C.mutationRateFast, ...
+                                        'recombinationRate', 1);
+        resultModularCM = simulateModularCM(simParams);
+        ave = computeAverageTrajectory(C.numTimeStamp, simParams, resultModularCM.resultTable);
+        fprintf('  CM Sexual completed in %.2f s\n', toc);
+        reportTermination('CM Sexual', resultModularCM.terminationStatus);
 
-    outDir = ensureDir(resultsRoot, 'CM_Sexual');
-    fname = fullfile(outDir, buildFilename('ModularFGM', 'CM_Sexual', simParams));
-    save(fname, 'simParams', 'resultModularCM', 'ave');
-    analyticalTrajectories = predictFullRecomb(discretizeInitialPhenotypes(simParams), ave);
-    save(fname, 'analyticalTrajectories', '-append');
+        outDir = ensureDir(resultsRoot, 'CM_Sexual');
+        fname = fullfile(outDir, buildFilename('ModularFGM', 'CM_Sexual', simParams));
+        save(fname, 'simParams', 'resultModularCM', 'ave');
+        analyticalTrajectories = predictFullRecomb(discretizeInitialPhenotypes(simParams), ave);
+        save(fname, 'analyticalTrajectories', '-append');
+    end
 
     fprintf('\nAll done. Mode: %s\n', mode);
 

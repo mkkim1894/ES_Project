@@ -119,9 +119,9 @@ fprintf('Figures saved to %s\n', outputDir);
         plot([10^-7, 10^0], [10^-7, 10^0], 'k--', 'LineWidth', 1);
         set(gca, 'XScale', 'log', 'YScale', 'log');
         xlim([10^-7, 10^-1]); ylim([10^-7, 10^-1]);
-        hx = xlabel('$v_1^\prime$', 'Interpreter', 'latex', 'FontSize', 12);
+        hx = xlabel('$v_1^\prime$', 'Interpreter', 'latex', 'FontSize', 14);
         hx.Units = 'normalized'; hx.Position(2) = -0.08;
-        ylabel('$v_2^\prime$', 'Interpreter', 'latex', 'FontSize', 12);
+        ylabel('$v_2^\prime$', 'Interpreter', 'latex', 'FontSize', 14);
         box on; set(gca, 'LineWidth', 1);
         addSubplotLabel('A', subplotPositions(1,:));
         pbaspect([1 1 1]);
@@ -141,10 +141,10 @@ fprintf('Figures saved to %s\n', outputDir);
                 s2(j,1) = Parameter.s2U2{i, ID_2(j)}(1);
             end
 
-            v1_min = (2.*s1) ./ (WFsim.generations - WFsim.t_burnin + 1);
+            v1_min = (2.*s1) ./ (WFsim.generations - WFsim.t_burnin);
             v1_2(v1_min > WFsim.v1_2{i}) = 3*10^-7;
 
-            v2_min = (2.*s2) ./ (WFsim.generations - WFsim.t_burnin + 1);
+            v2_min = (2.*s2) ./ (WFsim.generations - WFsim.t_burnin);
             v2_1(v2_min > WFsim.v2_1{i}) = 3*10^-7;
 
             color_idx = map_index_to_color(i);
@@ -157,15 +157,22 @@ fprintf('Figures saved to %s\n', outputDir);
         xline(3*10^-7, 'k--', 'LineWidth', 0.8);
         set(gca, 'XScale', 'log', 'YScale', 'log');
         xlim([10^-7, 10^-1]); ylim([10^-7, 10^-1]);
-        hx = xlabel('$v_{1}$', 'Interpreter', 'latex', 'FontSize', 12);
+        hx = xlabel('$v_{1}$', 'Interpreter', 'latex', 'FontSize', 14);
         hx.Units = 'normalized'; hx.Position(2) = -0.08;
-        ylabel('$v_{2}$', 'Interpreter', 'latex', 'FontSize', 12);
+        ylabel('$v_{2}$', 'Interpreter', 'latex', 'FontSize', 14);
         box on; set(gca, 'LineWidth', 1);
         addSubplotLabel('B', subplotPositions(2,:));
         pbaspect([1 1 1]);
 
         % Subplots C, D
-        exclude_elements = [1, 2, 3, 7, 8, 12];
+        % Panels C and D are split at D = 100, the ratio threshold of the
+        % heuristic in the equation for r under concurrent mutations. Indices
+        % 1, 2 and 7 carry v2/v1 = 2000 and 437.345, the only grid ratios above
+        % it; 3, 8 and 12 carry 95.635, which lies below it and therefore sits
+        % in the regime where the heuristic is applied, so panel D must contain
+        % it. Using the same D here and in the theory keeps the figure and
+        % equation consistent and makes the panel labels exactly true.
+        exclude_elements = [1, 2, 7];
         shortened_vector = setdiff(1:21, exclude_elements);
 
         % C: Stalling regime (v2/v1 > 100)
@@ -194,8 +201,8 @@ fprintf('Figures saved to %s\n', outputDir);
         plot([10^-3, 4*10^-1], [10^-3, 4*10^-1], 'k--', 'LineWidth', 1);
         set(gca, 'XScale', 'log', 'YScale', 'log');
         xlim([10^-3, 4*10^-1]); ylim([10^-3, 4*10^-1]);
-        xlabel('$s_{1}$', 'Interpreter', 'latex', 'FontSize', 12);
-        ylabel('$s_{2}$', 'Interpreter', 'latex', 'FontSize', 12);
+        xlabel('$s_{1}$', 'Interpreter', 'latex', 'FontSize', 14);
+        ylabel('$s_{2}$', 'Interpreter', 'latex', 'FontSize', 14);
         box on; set(gca, 'LineWidth', 1);
         addSubplotLabel('E', subplotPositions(5,:));
         pbaspect([1 1 1]);
@@ -218,8 +225,8 @@ fprintf('Figures saved to %s\n', outputDir);
         plot([10^-5, 2*10^-2], [10^-5, 2*10^-2], 'k--', 'LineWidth', 1);
         set(gca, 'XScale', 'log', 'YScale', 'log');
         xlim([2*10^-5, 2*10^-2]); ylim([2*10^-5, 2*10^-2]);
-        xlabel('$U_{1}$', 'Interpreter', 'latex', 'FontSize', 12);
-        ylabel('$U_{2}$', 'Interpreter', 'latex', 'FontSize', 12);
+        xlabel('$U_{1}$', 'Interpreter', 'latex', 'FontSize', 14);
+        ylabel('$U_{2}$', 'Interpreter', 'latex', 'FontSize', 14);
         box on; set(gca, 'LineWidth', 1);
         addSubplotLabel('F', subplotPositions(6,:));
         pbaspect([1 1 1]);
@@ -238,7 +245,10 @@ fprintf('Figures saved to %s\n', outputDir);
             0.76  0.1  0.22  0.75;   % C (s weights)
         ];
 
-        shortened_vector = setdiff(1:21, [1, 2, 3, 7, 8, 12]);
+        % Same split as panels C/D of the main figure: the heuristic is
+        % applied whenever v2'/v1' <= D = 100, so the weights figure must
+        % cover every such pair, including the ratio-95.635 group.
+        shortened_vector = setdiff(1:21, [1, 2, 7]);
 
         % A: Equal weights
         subplot('Position', subplotPositions(1, :));
@@ -300,11 +310,11 @@ function plotTheoryVsSimSubplot(indices, Parameter, WFsim, color_palette, map_in
             v2(j,1) = Parameter.v2_check(i, ID_2(j))';
         end
 
-        v1_min = (2.*s1) ./ (WFsim.generations - WFsim.t_burnin + 1);
+        v1_min = (2.*s1) ./ (WFsim.generations - WFsim.t_burnin);
         v1(v1_min > WFsim.v1_2{i}) = NaN;
         v1_2(v1_min > WFsim.v1_2{i}) = NaN;
 
-        v2_min = (2.*s2) ./ (WFsim.generations - WFsim.t_burnin + 1);
+        v2_min = (2.*s2) ./ (WFsim.generations - WFsim.t_burnin);
         v2(v2_min > WFsim.v2_1{i}) = NaN;
         v2_1(v2_min > WFsim.v2_1{i}) = NaN;
 
@@ -320,16 +330,16 @@ function plotTheoryVsSimSubplot(indices, Parameter, WFsim, color_palette, map_in
     xlim([2*10^-7, 10^-1]); ylim([2*10^-7, 10^-1]);
     set(gca, 'XTick', [10^-5, 10^-3, 10^-1]);
     set(gca, 'YTick', [10^-5, 10^-3, 10^-1]);
-    hx = xlabel('$v_i^\prime$', 'Interpreter', 'latex', 'FontSize', 12);
+    hx = xlabel('$v_i^\prime$', 'Interpreter', 'latex', 'FontSize', 14);
     hx.Units = 'normalized'; hx.Position(2) = -0.08;
-    ylabel('$v_i$', 'Interpreter', 'latex', 'FontSize', 12);
+    ylabel('$v_i$', 'Interpreter', 'latex', 'FontSize', 14);
     gray = [0.5 0.5 0.5];
     leg1 = scatter(nan, nan, 'Marker', 'x', 'MarkerEdgeColor', gray, 'SizeData', 15);
     leg2 = scatter(nan, nan, 'Marker', 'o', 'MarkerEdgeColor', gray, 'MarkerFaceColor', gray, 'SizeData', 15);
     legend([leg1, leg2], {'$v_1$', '$v_2$'}, 'Location', 'southeast', 'Interpreter', 'latex');
     box on; set(gca, 'LineWidth', 1);
     addSubplotLabel(label, pos);
-    text(0.1, 0.7, regime_text, 'Interpreter', 'latex', 'Units', 'normalized', 'FontSize', 10);
+    text(0.1, 0.7, regime_text, 'Interpreter', 'latex', 'Units', 'normalized', 'FontSize', 12);
     pbaspect([1 1 1]);
 end
 
@@ -345,7 +355,7 @@ function plotWeightedComparison(weightType, indices, Parameter, WFsim, Predictio
         for j = 1:numel(ID_1)
             s1(j,1) = Parameter.s1U1{i, ID_1(j)}(1);
         end
-        v1_min = (2.*s1) ./ (WFsim.generations - WFsim.t_burnin + 1);
+        v1_min = (2.*s1) ./ (WFsim.generations - WFsim.t_burnin);
         y_axis(v1_min > WFsim.v1_2{i}) = NaN;
 
         if strcmp(weightType, 'vprime')
@@ -368,7 +378,7 @@ function plotWeightedComparison(weightType, indices, Parameter, WFsim, Predictio
         for j = 1:numel(ID_1)
             s2(j,1) = Parameter.s2U2{i, ID_2(j)}(1);
         end
-        v2_min = (2.*s2) ./ (WFsim.generations - WFsim.t_burnin + 1);
+        v2_min = (2.*s2) ./ (WFsim.generations - WFsim.t_burnin);
         y_axis(v2_min > WFsim.v2_1{i}) = NaN;
 
         if strcmp(weightType, 'vprime')
@@ -396,26 +406,26 @@ function plotWeightedComparison(weightType, indices, Parameter, WFsim, Predictio
 
     switch weightType
         case 'vprime'
-            hx = xlabel('$v_i^\prime$', 'Interpreter', 'latex', 'FontSize', 10);
+            hx = xlabel('$v_i^\prime$', 'Interpreter', 'latex', 'FontSize', 12);
             hx.Units = 'normalized'; hx.Position(2) = -0.12;
         case 'equal'
-            hx = xlabel('$v_i^*, w_i = \frac{1}{2}$', 'Interpreter', 'latex', 'FontSize', 10);
+            hx = xlabel('$v_i^*, w_i = \frac{1}{2}$', 'Interpreter', 'latex', 'FontSize', 12);
             hx.Units = 'normalized'; hx.Position(2) = -0.12;
         case 'U'
-            hx = xlabel('$v_i^*, w_i = \frac{U_i}{U}$', 'Interpreter', 'latex', 'FontSize', 10);
+            hx = xlabel('$v_i^*, w_i = \frac{U_i}{U}$', 'Interpreter', 'latex', 'FontSize', 12);
             hx.Units = 'normalized'; hx.Position(2) = -0.12;
         case 's'
-            hx = xlabel('$v_i^*, w_i = \frac{s_i}{s_1+s_2}$', 'Interpreter', 'latex', 'FontSize', 10);
+            hx = xlabel('$v_i^*, w_i = \frac{s_i}{s_1+s_2}$', 'Interpreter', 'latex', 'FontSize', 12);
             hx.Units = 'normalized'; hx.Position(2) = -0.12;
     end
-    ylabel('$v_i$', 'Interpreter', 'latex', 'FontSize', 10);
+    ylabel('$v_i$', 'Interpreter', 'latex', 'FontSize', 12);
     gray = [0.5 0.5 0.5];
     leg1 = scatter(nan, nan, 'Marker', 'x', 'MarkerEdgeColor', gray, 'SizeData', 10);
     leg2 = scatter(nan, nan, 'Marker', 'o', 'MarkerEdgeColor', gray, 'MarkerFaceColor', gray, 'SizeData', 10);
     legend([leg1, leg2], {'$v_1$', '$v_2$'}, 'Location', 'southeast', 'Interpreter', 'latex');
     box on;
-    text(-0.25, 1.15, label, 'Units', 'normalized', 'FontSize', 12, 'FontWeight', 'bold');
-    text(0.1, 0.7, '$\frac{v_{2}}{v_{1}} \leq 100$', 'Interpreter', 'latex', 'Units', 'normalized', 'FontSize', 10);
+    text(-0.25, 1.15, label, 'Units', 'normalized', 'FontSize', 14, 'FontWeight', 'bold');
+    text(0.1, 0.7, '$\frac{v_{2}}{v_{1}} \leq 100$', 'Interpreter', 'latex', 'Units', 'normalized', 'FontSize', 12);
     pbaspect([1 1 1]);
 end
 
@@ -425,5 +435,5 @@ end
 
 function addSubplotLabel(label, pos)
     annotation('textbox', [pos(1)-0.02, pos(2)+pos(4), 0.03, 0.03], ...
-        'String', label, 'FontSize', 12, 'FontWeight', 'bold', 'EdgeColor', 'none');
+        'String', label, 'FontSize', 14, 'FontWeight', 'bold', 'EdgeColor', 'none');
 end

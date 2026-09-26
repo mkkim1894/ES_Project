@@ -38,14 +38,32 @@ function [analyticalTrajectories] = predictFullRecomb(simParams, ~)
     stepSize = delta / 10;
     maxIter = 1e6;
 
-    % Full recombination analytical parameters
-    A1 = log((N^2 * U) / (L(1) * a(1)^2));
-    A2 = log((N^2 * U) / (L(2) * a(2)^2));
+    % Full recombination analytical parameters.
+    %
+    % UNITS. The manuscript writes F = -sum_i (|x_i|/a_i)^2 while the code writes
+    % the equivalent Gaussian form with sigma and the rescaled axes
+    % ellipseParams, the two being related by a_i = sqrt(2)*sigma*ellipseParams(i).
+    % Equations (gamma, A) in the manuscript are in the MANUSCRIPT convention, so
+    % they must be evaluated with aMS, not with ellipseParams. Using
+    % ellipseParams here understated every a_i^2 by a factor 2*sigma^2 = 8, which
+    % shifted A_i from (5.52, 6.22) to (7.60, 8.29) and gamma2/gamma1 from 1.579
+    % to 1.680, moving the drawn path by up to 29% in x_2 and running it roughly
+    % 3x closer to the optimum before terminating. The log-ratio panel
+    % (predictLogRatioTrajectory) already did the conversion, so panels B and D of
+    % Figure 4 disagreed with each other. predictModularSSWM carries the same note.
+    %
+    % Note that `a` (= ellipseParams) is still the right thing to use in the
+    % fitness expression below, because that one is written in the CODE
+    % convention, with its own explicit 1/(2*sigW^2).
+    aMS = sqrt(2) * sigW * a;
+
+    A1 = log((N^2 * U) / (L(1) * aMS(1)^2));
+    A2 = log((N^2 * U) / (L(2) * aMS(2)^2));
 
     gamma1 = (2 * delta^2) / ...
-        (a(1)^2 * (log((4 * L(1) * delta^2) / (U * a(1)^2)))^2);
+        (aMS(1)^2 * (log((4 * L(1) * delta^2) / (U * aMS(1)^2)))^2);
     gamma2 = (2 * delta^2) / ...
-        (a(2)^2 * (log((4 * L(2) * delta^2) / (U * a(2)^2)))^2);
+        (aMS(2)^2 * (log((4 * L(2) * delta^2) / (U * aMS(2)^2)))^2);
 
     for i_pos = 1:nPos
         WT = initialPhenotypes(i_pos, :);
